@@ -35,7 +35,11 @@ class ValidationMiddleWare {
       (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-          const error = new CustomError("Error with the input received", 400);
+          const error = new CustomError(
+            "Error with the input received",
+            400,
+            errors.array()
+          );
           return next(error);
         }
         next();
@@ -69,7 +73,11 @@ class ValidationMiddleWare {
       (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-          const error = new CustomError("Error with the input received", 400);
+          const error = new CustomError(
+            "Error with the input received",
+            400,
+            errors.array()
+          );
           return next(error);
         }
         next();

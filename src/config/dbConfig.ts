@@ -1,10 +1,13 @@
-
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const MONGO_URI = process.env.DB_CONN_STR as string;
+const mode = process.env.MODE;
+const MONGO_URI =
+  mode == "test"
+    ? (process.env.TEST_DB_CONN_STR as string)
+    : (process.env.DB_CONN_STR as string);
 
 const connectDB = async () => {
   try {

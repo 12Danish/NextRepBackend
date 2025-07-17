@@ -15,3 +15,6 @@ config.connectDB().then(() => {
     console.log(`🚀 Server running on http://localhost:${config.port}`);
   });
 });
+
+
+export {app}

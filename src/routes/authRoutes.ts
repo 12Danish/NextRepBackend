@@ -21,7 +21,7 @@ router.route("/logout").get(logoutController);
 router
   .route("/customLogin")
   .post(
-    ValidationMiddleWare.validateCustomRegisterInput(),
+    ValidationMiddleWare.validCustomLoginInput(),
     customLoginController
   );
 
