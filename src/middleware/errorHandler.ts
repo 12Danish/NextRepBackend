@@ -1,19 +1,25 @@
-import { stat } from "fs";
-
+// middleware/errorHandler.ts
 import { Request, Response, NextFunction } from "express";
+import { CustomError } from "../utils/customError";
 
-const errHandlerMiddleware = (
-  err: any,
+export const errorHandler = (
+  err: any, //  Accepts both CustomError and unknown
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode);
-  res.json({
-    title: err.title,
-    message: err.message,
+  if (err instanceof CustomError) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  // Fallback for unknown errors
+  console.error(err); // Optionally log stack trace
+
+  res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
   });
 };
-
-export default errHandlerMiddleware;
