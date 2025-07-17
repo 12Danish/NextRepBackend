@@ -5,13 +5,25 @@ import {
   registerUserController,
   logoutController,
 } from "../controllers/userControllers";
+
+import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();
 
-router.route("/userRegister").post(registerUserController);
+router
+  .route("/userRegister")
+  .post(
+    ValidationMiddleWare.validateCustomRegisterInput(),
+    registerUserController
+  );
 
 router.route("/logout").get(logoutController);
 
-router.route("/customLogin").post(customLoginController);
+router
+  .route("/customLogin")
+  .post(
+    ValidationMiddleWare.validateCustomRegisterInput(),
+    customLoginController
+  );
 
 router.route("/firebaseLogin").post(firebaseLoginController);
 

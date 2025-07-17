@@ -1,6 +1,36 @@
 import { NextFunction, Request, Response } from "express";
 import UserAuthServices from "../services/authServices";
 
+/**
+ * @desc    Controller for users to register locally
+ * @route   POST /api/userRegister
+ * @access  Public
+ *
+ * @headers
+ * Content-Type: application/json
+ *
+ * @body
+ * {
+ *   "username": "string",       // Desired username
+ *   "email": "string",          // User's email address
+ *   "password": "string"        // User's password
+ * }
+ *
+ * @returns
+ * {
+ *   "message": "User registered successfully",
+ *   "user": {
+ *      "username" : "string",
+ *     "email": "string",
+ *     "authProvider": "local",
+ *      "createdAt" : "Date",
+ *      "updatedAt" : "Date"
+ *   }
+ *   @errors
+ * - 500 in case of unexpected error
+ *
+ */
+
 const registerUserController = async (
   req: Request,
   res: Response,
@@ -21,6 +51,35 @@ const registerUserController = async (
   }
 };
 
+/**
+ * @desc    Controller for users to login via JWT
+ * @route   POST /api/customLogin
+ * @access  Public
+ *
+ * @headers
+ * Content-Type: application/json
+ *
+ * @body
+ * {
+ *   "email": "string",       // User's registered email address
+ *   "password": "string"     // User's password
+ * }
+ *
+ * @cookies
+ * Set-Cookie: token=JWT_TOKEN; HttpOnly; Secure; SameSite=None; Max-Age=86400
+ *
+ * @returns
+ * {
+ *   "message": "Login successful",
+ *   "user": {
+ *     "email": "string",
+ *     "authProvider": "local"
+ *   }
+ *   @errors
+ * - 500 in case of unexpected error
+ * - 401 in case of wrong password or user not found
+ *
+ */
 const customLoginController = async (
   req: Request,
   res: Response,
@@ -52,6 +111,19 @@ const customLoginController = async (
   }
 };
 
+/**
+ * @desc    Logout user by clearing the authentication token cookie
+ * @route   GET /api/logout
+ * @access  Private
+ *
+ * @sets-cookie
+ * Clears the HTTP-only cookie named `token` by setting its expiration
+ *
+ * @returns
+ * {
+ *   "message": "Successfully logged out"
+ * }
+ */
 const logoutController = async (
   req: Request,
   res: Response,
@@ -70,6 +142,34 @@ const logoutController = async (
   }
 };
 
+/**
+ * @desc    Login user using Firebase token (Google/GitHub login)
+ * @route   POST /api/firebaseLogin
+ * @access  Public
+ *
+ * @headers
+ * Content-Type: application/json
+ *
+ * @body
+ * {
+ *   "firebaseToken": "string" // Firebase ID token obtained from client after Google/GitHub login
+ * }
+ *
+ * @cookies
+ * Sets an HTTP-only cookie named `token` containing the JWT for session management
+ *
+ * @returns
+ * {
+ *   "message": "Login successful",
+ *   "user": {
+ *     "email": "string",
+ *     "authProvider": "google | github"
+ *   }
+ *
+ * @errors
+ * - 500 in case of unexpected error
+ * }
+ */
 const firebaseLoginController = async (
   req: Request,
   res: Response,
