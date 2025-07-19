@@ -12,7 +12,8 @@ const WorkoutSchema = new mongoose_1.default.Schema({
     userId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "User", required: true },
     targetMuscleGroup: { type: String, enum: ["chest", "back", "legs", "arms", "shoulders", "core"], required: true },
     status: { type: String, enum: ["completed", "pending", "skipped"], default: "pending" },
-    goalId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Goal" }
+    goalId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Goal" },
+    caloriesBurnt: { type: Number, required: true }, 
 },
 { timestamps: true } // ⏱ Automatically adds `createdAt` and `updatedAt`
 );
