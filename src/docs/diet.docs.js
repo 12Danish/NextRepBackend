@@ -142,49 +142,37 @@
  *     NutritionSummary:
  *       type: object
  *       properties:
- *         totalCalories:
+ *         calories:
  *           type: number
- *           example: 2150
- *         totalCarbs:
+ *           example: 2150.5
+ *         carbs:
  *           type: number
- *           example: 250.5
- *         totalProtein:
+ *           example: 250.3
+ *         protein:
  *           type: number
  *           example: 120.8
- *         totalFat:
+ *         fat:
  *           type: number
- *           example: 65.3
- *         mealBreakdown:
- *           type: object
- *           properties:
- *             breakfast:
- *               type: object
- *               properties:
- *                 calories: { type: number, example: 450 }
- *                 carbs: { type: number, example: 60.2 }
- *                 protein: { type: number, example: 25.1 }
- *                 fat: { type: number, example: 15.3 }
- *             lunch:
- *               type: object
- *               properties:
- *                 calories: { type: number, example: 600 }
- *                 carbs: { type: number, example: 75.8 }
- *                 protein: { type: number, example: 35.2 }
- *                 fat: { type: number, example: 20.1 }
- *             dinner:
- *               type: object
- *               properties:
- *                 calories: { type: number, example: 800 }
- *                 carbs: { type: number, example: 90.5 }
- *                 protein: { type: number, example: 45.5 }
- *                 fat: { type: number, example: 25.9 }
- *             snack:
- *               type: object
- *               properties:
- *                 calories: { type: number, example: 300 }
- *                 carbs: { type: number, example: 24.0 }
- *                 protein: { type: number, example: 15.0 }
- *                 fat: { type: number, example: 4.0 }
+ *           example: 65.2
+ *         entryCount:
+ *           type: number
+ *           example: 15
+ *     
+ *     PaginationResponse:
+ *       type: object
+ *       properties:
+ *         page:
+ *           type: integer
+ *           example: 1
+ *         limit:
+ *           type: integer
+ *           example: 20
+ *         total:
+ *           type: integer
+ *           example: 95
+ *         totalPages:
+ *           type: integer
+ *           example: 5
  *     
  *     ApiResponse:
  *       type: object
@@ -198,6 +186,8 @@
  *         data:
  *           type: object
  *           description: Response data (varies by endpoint)
+ *         pagination:
+ *           $ref: '#/components/schemas/PaginationResponse'
  *     
  *     ErrorResponse:
  *       type: object
@@ -224,13 +214,23 @@
  *     
  *     DietIdParam:
  *       in: path
- *       name: id
+ *       name: dietId
  *       required: true
  *       schema:
  *         type: string
  *       description: Diet entry ID
  *       example: "64f8a1b2c3d4e5f6a7b8c9d0"
- * 
+ *     
+ *     DateParam:
+ *       in: path
+ *       name: date
+ *       required: true
+ *       schema:
+ *         type: string
+ *         format: date
+ *       description: Date in ISO format (YYYY-MM-DD)
+ *       example: "2024-01-15"
+
  * tags:
  *   - name: Diet
  *     description: Diet entry management and nutrition tracking
@@ -238,7 +238,7 @@
 
 /**
  * @swagger
- * /api/diet:
+ * /api/diets:
  *   post:
  *     summary: Create a new diet entry
  *     description: Add a new food item to the user's diet log with nutritional information
@@ -357,20 +357,11 @@
  *                 - type: object
  *                   properties:
  *                     data:
- *                       type: object
- *                       properties:
- *                         entries:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/DietEntry'
- *                         pagination:
- *                           type: object
- *                           properties:
- *                             currentPage: { type: integer, example: 1 }
- *                             totalPages: { type: integer, example: 5 }
- *                             totalItems: { type: integer, example: 95 }
- *                             hasNext: { type: boolean, example: true }
- *                             hasPrev: { type: boolean, example: false }
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/DietEntry'
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationResponse'
  *       500:
  *         description: Internal server error
  *         content:
@@ -381,7 +372,7 @@
 
 /**
  * @swagger
- * /api/diet/{id}:
+ * /api/diets/{dietId}:
  *   get:
  *     summary: Get a specific diet entry by ID
  *     description: Retrieve detailed information about a specific diet entry
@@ -485,32 +476,46 @@
 
 /**
  * @swagger
- * /api/diet/user/{userId}:
+ * /api/diets/user/{userId}:
  *   get:
  *     summary: Get all diet entries for a specific user
- *     description: Retrieve all diet entries belonging to a specific user with optional meal and status filtering
+ *     description: Retrieve all diet entries belonging to a specific user with pagination and sorting
  *     tags: [Diet]
  *     parameters:
  *       - $ref: '#/components/parameters/UserIdParam'
  *       - in: query
- *         name: meal
+ *         name: page
  *         schema:
- *           type: string
- *           enum: [breakfast, lunch, dinner, snack]
- *         description: Filter by meal type
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *         example: 1
  *       - in: query
- *         name: status
+ *         name: limit
  *         schema:
- *           type: string
- *           enum: [taken, next, overdue, skipped]
- *         description: Filter by status
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of items per page
+ *         example: 20
  *       - in: query
- *         name: date
+ *         name: sortBy
  *         schema:
  *           type: string
- *           format: date
- *         description: Filter by specific date
- *         example: "2024-01-15"
+ *           enum: [createdAt, updatedAt, calories, foodName]
+ *           default: createdAt
+ *         description: Field to sort by
+ *         example: "createdAt"
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *         example: "desc"
  *     responses:
  *       200:
  *         description: User diet entries retrieved successfully
@@ -525,6 +530,8 @@
  *                       type: array
  *                       items:
  *                         $ref: '#/components/schemas/DietEntry'
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationResponse'
  *       500:
  *         description: Internal server error
  *         content:
@@ -535,10 +542,10 @@
 
 /**
  * @swagger
- * /api/diet/user/{userId}/summary:
+ * /api/diets/user/{userId}/summary:
  *   get:
  *     summary: Get nutrition summary for a user
- *     description: Calculate total calories, macros, and meal breakdown for a user within a date range
+ *     description: Calculate total calories, macros, and entry count for a user within a date range
  *     tags: [Diet]
  *     parameters:
  *       - $ref: '#/components/parameters/UserIdParam'
@@ -556,13 +563,6 @@
  *           format: date
  *         description: End date for summary calculation
  *         example: "2024-01-20"
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [taken, next, overdue, skipped]
- *         description: Filter by status (default includes only 'taken')
- *         example: "taken"
  *     responses:
  *       200:
  *         description: Nutrition summary calculated successfully
@@ -585,13 +585,46 @@
 
 /**
  * @swagger
- * /api/diet/user/{userId}/today:
+ * /api/diets/user/{userId}/today:
  *   get:
  *     summary: Get today's diet entries for a user
- *     description: Retrieve all diet entries for the current date for a specific user
+ *     description: Retrieve all diet entries for the current date for a specific user with pagination
  *     tags: [Diet]
  *     parameters:
  *       - $ref: '#/components/parameters/UserIdParam'
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of items per page
+ *         example: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, calories, foodName]
+ *           default: createdAt
+ *         description: Field to sort by
+ *         example: "createdAt"
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *         example: "desc"
  *     responses:
  *       200:
  *         description: Today's diet entries retrieved successfully
@@ -603,14 +636,11 @@
  *                 - type: object
  *                   properties:
  *                     data:
- *                       type: object
- *                       properties:
- *                         entries:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/DietEntry'
- *                         summary:
- *                           $ref: '#/components/schemas/NutritionSummary'
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/DietEntry'
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationResponse'
  *       500:
  *         description: Internal server error
  *         content:
@@ -621,133 +651,80 @@
 
 /**
  * @swagger
- * /api/diet/bulk:
- *   post:
- *     summary: Create multiple diet entries
- *     description: Add multiple diet entries in a single request for efficiency
- *     tags: [Diet]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - entries
- *             properties:
- *               entries:
- *                 type: array
- *                 items:
- *                   $ref: '#/components/schemas/CreateDietRequest'
- *                 minItems: 1
- *                 maxItems: 50
- *     responses:
- *       201:
- *         description: Diet entries created successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         created:
- *                           type: array
- *                           items:
- *                             $ref: '#/components/schemas/DietEntry'
- *                         failed:
- *                           type: array
- *                           items:
- *                             type: object
- *                             properties:
- *                               index: { type: integer }
- *                               error: { type: string }
- *       400:
- *         description: Invalid input data
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- * 
- *   patch:
- *     summary: Update status for multiple diet entries
- *     description: Bulk update status of multiple diet entries (e.g., mark as taken/skipped)
- *     tags: [Diet]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - ids
- *               - status
- *             properties:
- *               ids:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of diet entry IDs to update
- *                 example: ["64f8a1b2c3d4e5f6a7b8c9d0", "64f8a1b2c3d4e5f6a7b8c9d1"]
- *               status:
- *                 type: string
- *                 enum: [taken, next, overdue, skipped]
- *                 description: New status to apply to all entries
- *                 example: "taken"
- *     responses:
- *       200:
- *         description: Diet entries updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: object
- *                       properties:
- *                         updated:
- *                           type: integer
- *                           example: 5
- *                         failed:
- *                           type: array
- *                           items:
- *                             type: object
- *                             properties:
- *                               id: { type: string }
- *                               error: { type: string }
- *       400:
- *         description: Invalid input data
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-
-/**
- * @swagger
- * /api/diet/search:
+ * /api/diets/user/{userId}/date/{date}:
  *   get:
- *     summary: Search diet entries
- *     description: Search for diet entries by food name with fuzzy matching
+ *     summary: Get diet entries for a specific date
+ *     description: Retrieve all diet entries for a specific date for a user with pagination
  *     tags: [Diet]
  *     parameters:
+ *       - $ref: '#/components/parameters/UserIdParam'
+ *       - $ref: '#/components/parameters/DateParam'
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of items per page
+ *         example: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, calories, foodName]
+ *           default: createdAt
+ *         description: Field to sort by
+ *         example: "createdAt"
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *         example: "desc"
+ *     responses:
+ *       200:
+ *         description: Diet entries for specific date retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/ApiResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/DietEntry'
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/diets/search/{userId}:
+ *   get:
+ *     summary: Search diet entries for a user
+ *     description: Search for diet entries by food name with fuzzy matching for a specific user
+ *     tags: [Diet]
+ *     parameters:
+ *       - $ref: '#/components/parameters/UserIdParam'
  *       - in: query
  *         name: q
  *         required: true
@@ -756,18 +733,38 @@
  *         description: Search query for food name
  *         example: "chicken"
  *       - in: query
- *         name: userId
+ *         name: page
  *         schema:
- *           type: string
- *         description: Filter by user ID
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *         example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           minimum: 1
- *           maximum: 50
- *           default: 10
- *         description: Maximum number of results
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of items per page
+ *         example: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, calories, foodName]
+ *           default: createdAt
+ *         description: Field to sort by
+ *         example: "createdAt"
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *         description: Sort order
+ *         example: "desc"
  *     responses:
  *       200:
  *         description: Search results retrieved successfully
@@ -782,6 +779,8 @@
  *                       type: array
  *                       items:
  *                         $ref: '#/components/schemas/DietEntry'
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationResponse'
  *       400:
  *         description: Missing or invalid search query
  *         content:
