@@ -10,36 +10,51 @@ class ValidationMiddleware {
      * Middleware for validating diet creation input.
      * 
      * Validates that:
-     * - `userId` is not empty.
-     * - `food` is not empty after trimming.
-     * - `calories` is a number.
-     * - `protein`, `carbs`, and `fats` are optional but must be numbers if provided.
-     * - `date` is optional but must be in ISO 860 
+     * - `userId` is not empty and valid MongoDB ObjectId.
+     * - `foodName` is not empty after trimming.
+     * - `meal` is one of the valid meal types.
+     * - `calories`, `carbs`, `protein`, and `fat` are numbers within reasonable limits.
+     * - `status` is optional but must be valid if provided.
+     * - `goalId` is optional but must be valid MongoDB ObjectId if provided.
      * 
      * @returns {Array} An array of middleware functions to use in an Express route.
      */
   static validateCreateDietInput() {
     return [
-      body("userId").notEmpty().withMessage("User ID is required"),
-      body("food").trim().notEmpty().withMessage("Food name is required"),
-      body("calories").isNumeric().withMessage("Calories must be a number"),
-      body("protein")
-        .optional()
-        .isNumeric()
-        .withMessage("Protein must be a number"),
+      body("userId")
+        .notEmpty()
+        .withMessage("User ID is required")
+        .isMongoId()
+        .withMessage("Invalid user ID format"),
+      body("foodName")
+        .trim()
+        .notEmpty()
+        .withMessage("Food name is required")
+        .isLength({ max: 200 })
+        .withMessage("Food name must be less than 200 characters"),
+      body("meal")
+        .isIn(["breakfast", "lunch", "dinner", "snack"])
+        .withMessage("Meal must be one of: breakfast, lunch, dinner, snack"),
+      body("calories")
+        .isFloat({ min: 0, max: 10000 })
+        .withMessage("Calories must be a number between 0 and 10000"),
       body("carbs")
+        .isFloat({ min: 0, max: 1000 })
+        .withMessage("Carbs must be a number between 0 and 1000"),
+      body("protein")
+        .isFloat({ min: 0, max: 1000 })
+        .withMessage("Protein must be a number between 0 and 1000"),
+      body("fat")
+        .isFloat({ min: 0, max: 1000 })
+        .withMessage("Fat must be a number between 0 and 1000"),
+      body("status")
         .optional()
-        .isNumeric()
-        .withMessage("Carbs must be a number"),
-      body("fats")
+        .isIn(["taken", "next", "overdue", "skipped"])
+        .withMessage("Status must be one of: taken, next, overdue, skipped"),
+      body("goalId")
         .optional()
-        .isNumeric()
-        .withMessage("Fats must be a number"),
-      body("date")
-        .optional()
-        .isISO8601()
-        .toDate()
-        .withMessage("Date must be in ISO 8601 format"),
+        .isMongoId()
+        .withMessage("Invalid goal ID format"),
       ValidationMiddleware.handleValidationErrors,
     ];
   }
@@ -48,36 +63,51 @@ class ValidationMiddleware {
    * Middleware for validating diet update input.
    * 
    * Validates that:
-   * - `food` is optional but cannot be empty if provided.
-   * - `calories`, `protein`, `carbs`, and `fats` are optional but must be numbers if provided.
-   * - `date` is optional but must be in ISO 8601 format if provided
+   * - `foodName` is optional but cannot be empty if provided.
+   * - `meal` is optional but must be valid if provided.
+   * - `calories`, `carbs`, `protein`, and `fat` are optional but must be numbers within limits if provided.
+   * - `status` is optional but must be valid if provided.
+   * - `goalId` is optional but must be valid MongoDB ObjectId if provided.
    * 
    * @returns {Array} An array of middleware functions to use in an Express route.
    */
   static validateUpdateDietInput() {
     return [
-      body("food").optional().trim().notEmpty().withMessage("Food cannot be empty"),
+      body("foodName")
+        .optional()
+        .trim()
+        .notEmpty()
+        .withMessage("Food name cannot be empty")
+        .isLength({ max: 200 })
+        .withMessage("Food name must be less than 200 characters"),
+      body("meal")
+        .optional()
+        .isIn(["breakfast", "lunch", "dinner", "snack"])
+        .withMessage("Meal must be one of: breakfast, lunch, dinner, snack"),
       body("calories")
         .optional()
-        .isNumeric()
-        .withMessage("Calories must be a number"),
-      body("protein")
-        .optional()
-        .isNumeric()
-        .withMessage("Protein must be a number"),
+        .isFloat({ min: 0, max: 10000 })
+        .withMessage("Calories must be a number between 0 and 10000"),
       body("carbs")
         .optional()
-        .isNumeric()
-        .withMessage("Carbs must be a number"),
-      body("fats")
+        .isFloat({ min: 0, max: 1000 })
+        .withMessage("Carbs must be a number between 0 and 1000"),
+      body("protein")
         .optional()
-        .isNumeric()
-        .withMessage("Fats must be a number"),
-      body("date")
+        .isFloat({ min: 0, max: 1000 })
+        .withMessage("Protein must be a number between 0 and 1000"),
+      body("fat")
         .optional()
-        .isISO8601()
-        .toDate()
-        .withMessage("Date must be in ISO 8601 format"),
+        .isFloat({ min: 0, max: 1000 })
+        .withMessage("Fat must be a number between 0 and 1000"),
+      body("status")
+        .optional()
+        .isIn(["taken", "next", "overdue", "skipped"])
+        .withMessage("Status must be one of: taken, next, overdue, skipped"),
+      body("goalId")
+        .optional()
+        .isMongoId()
+        .withMessage("Invalid goal ID format"),
       ValidationMiddleware.handleValidationErrors,
     ];
   }
@@ -92,7 +122,11 @@ class ValidationMiddleware {
    */
   static validateDietIdParam() {
     return [
-      param("dietId").isMongoId().withMessage("Invalid diet ID format"),
+      param("dietId")
+        .notEmpty()
+        .withMessage("Diet ID is required")
+        .isMongoId()
+        .withMessage("Invalid diet ID format"),
       ValidationMiddleware.handleValidationErrors,
     ];
   }
@@ -105,10 +139,13 @@ class ValidationMiddleware {
    * 
    * @returns {Array} An array of middleware functions to use in an Express route.
    */
-
   static validateUserIdParam() {
     return [
-      param("userId").isMongoId().withMessage("Invalid user ID format"),
+      param("userId")
+        .notEmpty()
+        .withMessage("User ID is required")
+        .isMongoId()
+        .withMessage("Invalid user ID format"),
       ValidationMiddleware.handleValidationErrors,
     ];
   }
@@ -124,9 +161,50 @@ class ValidationMiddleware {
   static validateDateParam() {
     return [
       param("date")
+        .notEmpty()
+        .withMessage("Date is required")
         .isISO8601()
         .toDate()
         .withMessage("Date must be in ISO 8601 format (YYYY-MM-DD)"),
+      ValidationMiddleware.handleValidationErrors,
+    ];
+  }
+
+  /**
+   * Middleware for validating query parameters for diet filtering.
+   * 
+   * Validates that:
+   * - `userId` is valid MongoDB ObjectId if provided.
+   * - `meal` is valid meal type if provided.
+   * - `status` is valid status if provided.
+   * - `startDate` and `endDate` are valid ISO dates if provided.
+   * 
+   * @returns {Array} An array of middleware functions to use in an Express route.
+   */
+  static validateDietFiltersQuery() {
+    return [
+      query("userId")
+        .optional()
+        .isMongoId()
+        .withMessage("Invalid user ID format"),
+      query("meal")
+        .optional()
+        .isIn(["breakfast", "lunch", "dinner", "snack"])
+        .withMessage("Meal must be one of: breakfast, lunch, dinner, snack"),
+      query("status")
+        .optional()
+        .isIn(["taken", "next", "overdue", "skipped"])
+        .withMessage("Status must be one of: taken, next, overdue, skipped"),
+      query("startDate")
+        .optional()
+        .isISO8601()
+        .toDate()
+        .withMessage("Start date must be in ISO 8601 format"),
+      query("endDate")
+        .optional()
+        .isISO8601()
+        .toDate()
+        .withMessage("End date must be in ISO 8601 format"),
       ValidationMiddleware.handleValidationErrors,
     ];
   }
@@ -137,6 +215,8 @@ class ValidationMiddleware {
    * Validates that:
    * - `page` is a positive integer if provided.
    * - `limit` is a positive integer if provided.
+   * - `sortBy` is valid sort field if provided.
+   * - `sortOrder` is valid sort order if provided.
    * 
    * @returns {Array} An array of middleware functions to use in an Express route.
    */
@@ -148,8 +228,16 @@ class ValidationMiddleware {
         .withMessage("Page must be a positive integer"),
       query("limit")
         .optional()
-        .isInt({ min: 1 })
-        .withMessage("Limit must be a positive integer"),
+        .isInt({ min: 1, max: 100 })
+        .withMessage("Limit must be a positive integer between 1 and 100"),
+      query("sortBy")
+        .optional()
+        .isIn(["createdAt", "updatedAt", "calories", "foodName"])
+        .withMessage("Sort by must be one of: createdAt, updatedAt, calories, foodName"),
+      query("sortOrder")
+        .optional()
+        .isIn(["asc", "desc"])
+        .withMessage("Sort order must be either 'asc' or 'desc'"),
       ValidationMiddleware.handleValidationErrors,
     ];
   }
@@ -183,27 +271,28 @@ class ValidationMiddleware {
    * Middleware that validates search query parameters.
    * 
    * Validates that:
-   * - `query` is optional but must be a string if provided.
+   * - `q` (search query) is required and must be a non-empty string.
    * 
    * @returns {Array} An array of middleware functions to use in an Express route.
    */
   static validateSearchQuery() {
     return [
-      query("query")
-        .optional()
+      query("q")
+        .notEmpty()
+        .withMessage("Search query is required")
         .trim()
-        .isString()
-        .withMessage("Search query must be a string"),
+        .isLength({ min: 1, max: 100 })
+        .withMessage("Search query must be between 1 and 100 characters"),
       ValidationMiddleware.handleValidationErrors,
     ];
   }
 
   /**
+   * Generic error handler for validation errors.
    * 
-   * @param req 
-   * @param res 
-   * @param next 
-   * @returns 
+   * @param req - Express request object
+   * @param res - Express response object
+   * @param next - Express next function
    */
   private static handleValidationErrors(
     req: Request,
@@ -212,8 +301,12 @@ class ValidationMiddleware {
   ) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      const errorMessages = errors.array().map(error => ({
+        message: error.msg,
+      }));
+      
       return next(
-        new CustomError("Validation failed", 400, errors.array())
+        new CustomError("Validation failed", 400, errorMessages)
       );
     }
     next();
