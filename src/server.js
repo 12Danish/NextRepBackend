@@ -8,11 +8,15 @@ const express_1 = __importDefault(require("express"));
 const config_1 = __importDefault(require("./config/config"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
+const sleepRoutes_1 = __importDefault(require("./routes/sleepRoutes"));
+const dietRoutes_1 = __importDefault(require("./routes/dietRoutes"));
 const app = (0, express_1.default)();
 exports.app = app;
 app.use(express_1.default.json());
 config_1.default.setupSwagger(app);
 app.use("/api", authRoutes_1.default);
+app.use("/api", sleepRoutes_1.default);
+app.use("/api", dietRoutes_1.default);
 app.use(errorHandler_1.errorHandler);
 config_1.default.connectDB().then(() => {
     app.listen(config_1.default.port, () => {
