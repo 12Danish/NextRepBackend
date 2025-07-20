@@ -20,3 +20,5 @@ const SleepSchema = new mongoose.Schema(
     }
 );
 SleepSchema.index({ userId: 1, date: 1 }, { unique: true });
+
+export default mongoose.model<ISleep>('Sleep', SleepSchema);
