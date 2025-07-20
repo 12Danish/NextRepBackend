@@ -8,6 +8,7 @@ export interface IWorkout extends Document {
     targetMuscleGroup: "chest" | "back" | "legs" | "arms" | "shoulders" | "core";
     status: "completed" | "pending" | "skipped";
     goalId?: mongoose.Types.ObjectId;
+    caloriesBurnt: Number
     createdAt: Date;
     updatedAt: Date;
 }
@@ -33,6 +34,7 @@ const WorkoutSchema = new mongoose.Schema(
             default: "pending",
         },
         goalId: { type: mongoose.Types.ObjectId, ref: 'Goal' },
+        caloriesBurnt: { type: Number, required: true }, // Calories burnt during the workout
     },
     {
         timestamps: true, // ⏱ Automatically adds `createdAt` and `updatedAt`
