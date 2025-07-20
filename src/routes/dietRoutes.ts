@@ -23,6 +23,8 @@ router
     createDietController
   )
   .get(
+    ValidationMiddleware.validateDietFiltersQuery(),
+    ValidationMiddleware.validatePaginationQuery(),
     getDietsController
   );
 
