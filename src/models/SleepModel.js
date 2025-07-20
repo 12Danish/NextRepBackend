@@ -8,7 +8,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const SleepSchema = new mongoose_1.default.Schema({
     userId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "User", required: true },
     duration: { type: Number, required: true }, // Duration in minutes
-    date: { type: Date, required: true }
+    date: { type: Date, required: true },
+    goalId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: "Goal", required: true }
 },
 {
     timestamps: true // ⏱ Automatically adds `createdAt` and `updatedAt`
