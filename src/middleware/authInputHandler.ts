@@ -99,7 +99,7 @@ class ValidationMiddleWare {
    * @returns {Function} An Express middleware function for token validation.
    */
   static validateToken() {
-    return (req: Request, response: Response, next: NextFunction) => {
+    return (req: any, response: Response, next: NextFunction) => {
       const token = req.cookies?.token;
 
       if (!token) {

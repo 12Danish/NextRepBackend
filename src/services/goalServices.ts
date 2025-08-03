@@ -2,18 +2,44 @@ import mongoose from "mongoose";
 import { Goal } from "../models/GoalsModel";
 import { CustomError } from "../utils/customError";
 
+// Interface for category-specific data
+interface IWeightGoalData {
+  goalType: "gain" | "loss" | "maintenance";
+  targetWeight: number;
+  currentWeight: number;
+  previousWeights: { weight: number; date: Date }[];
+}
+
+interface IDietGoalData {
+  targetCalories: number;
+  targetProteins: number;
+  targetFats: number;
+  targetCarbs: number;
+}
+
+interface ISleepGoalData {
+  targetHours: number;
+}
+
+interface IWorkoutGoalData {
+  targetMinutes?: number;
+  targetReps?: number;
+  exerciseName: string;
+}
+
+// Interface for adding a goal
 interface addGoalServiceProps {
   category: "weight" | "diet" | "workout" | "sleep";
   startDate: Date;
   endDate: Date;
-  title: string;
-  description?: string;
   targetDate: Date;
   status: "pending" | "completed" | "overdue";
-  progress: Number;
   userId: string;
+  description: string;
+  data: IWeightGoalData | IDietGoalData | ISleepGoalData | IWorkoutGoalData;
 }
 
+// Interface for fetching goals
 interface getGoalsServiceProps {
   category?: string;
   status?: string;
@@ -22,46 +48,47 @@ interface getGoalsServiceProps {
   limit: number;
 }
 
+// Interface for counting goals
 interface getGoalsCountServiceProps {
   category?: string;
   status?: string;
   userId: string;
 }
 
+// Interface for updating goal details
 interface goalUpdatesServiceProps {
   category?: "weight" | "diet" | "workout" | "sleep";
   startDate?: Date;
-  title?: string;
-  description?: string;
+  endDate?: Date;
   targetDate?: Date;
-  progress?: Number;
+  status?: "pending" | "completed" | "overdue";
+  data?: IWeightGoalData | IDietGoalData | ISleepGoalData | IWorkoutGoalData;
 }
+
 class GoalServices {
   static async addGoalService({
     category,
     startDate,
-    title,
-    description,
+    endDate,
     targetDate,
     status,
     userId,
-    progress,
+    data,
   }: addGoalServiceProps) {
     const newGoal = await Goal.create({
       category,
       startDate,
-      title,
-      description,
+      endDate,
       targetDate,
       status,
-      userId,
-      progress,
+      userId: new mongoose.Types.ObjectId(userId),
+      data,
     });
 
     return newGoal;
   }
 
-  static async deleteGoalServce(goalId: string) {
+  static async deleteGoalService(goalId: string) {
     if (!mongoose.Types.ObjectId.isValid(goalId)) {
       throw new CustomError("Invalid goal ID", 400);
     }
@@ -71,7 +98,7 @@ class GoalServices {
       throw new CustomError("Goal not found", 404);
     }
 
-    return true; // returns true if something was deleted
+    return true;
   }
 
   static async updateGoalDetailsService({
@@ -86,8 +113,8 @@ class GoalServices {
     }
 
     const updatedGoal = await Goal.findByIdAndUpdate(goalId, updates, {
-      new: true, // return the updated document
-      runValidators: true, // validate against schema
+      new: true,
+      runValidators: true,
     });
 
     if (!updatedGoal) {
@@ -104,7 +131,7 @@ class GoalServices {
     limit,
     userId,
   }: getGoalsServiceProps) {
-    const filter: any = { userId };
+    const filter: any = { userId: new mongoose.Types.ObjectId(userId) };
 
     if (category) filter.category = category;
     if (status) filter.status = status;
@@ -121,7 +148,7 @@ class GoalServices {
     status,
     userId,
   }: getGoalsCountServiceProps) {
-    const filter: any = { userId };
+    const filter: any = { userId: new mongoose.Types.ObjectId(userId) };
 
     if (category) filter.category = category;
     if (status) filter.status = status;
@@ -129,36 +156,56 @@ class GoalServices {
     const count = await Goal.countDocuments(filter);
     return count;
   }
+
   static async getOverallProgressService(userId: string) {
-    const statusCounts = await Goal.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+    const goals = await Goal.find({
+      userId: new mongoose.Types.ObjectId(userId),
+    });
 
     let completed = 0;
     let pending = 0;
     let overdue = 0;
+    let totalProgress = 0;
 
-    for (const status of statusCounts) {
-      if (status._id === "completed") completed = status.count;
-      if (status._id === "pending") pending = status.count;
-      if (status._id === "overdue") overdue = status.count;
+    for (const goal of goals) {
+      let goalProgress = 0;
+
+      if (goal.status === "completed") {
+        completed++;
+        goalProgress = 100;
+      } else if (goal.status === "pending") {
+        pending++;
+        // Calculate progress based on category
+        if (goal.category === "weight") {
+          const data = goal.data as IWeightGoalData;
+          const weightChange = Math.abs(data.currentWeight - data.targetWeight);
+          const initialChange = Math.abs(
+            data.previousWeights[0]?.weight ||
+              data.currentWeight - data.targetWeight
+          );
+          goalProgress = initialChange
+            ? (weightChange / initialChange) * 100
+            : 0;
+        } else if (goal.category === "diet") {
+          // Assume progress based on external tracking (e.g., logged calories); placeholder
+          goalProgress = 50; // Simplified for example
+        } else if (goal.category === "sleep") {
+          // Assume progress based on external tracking; placeholder
+          goalProgress = 50;
+        } else if (goal.category === "workout") {
+          // Assume progress based on external tracking; placeholder
+          goalProgress = 50;
+        }
+      } else if (goal.status === "overdue") {
+        overdue++;
+        goalProgress = 0;
+      }
+
+      totalProgress += goalProgress;
     }
 
     const total = completed + pending + overdue;
-    if (total === 0) return { progress: 0 };
-
-    const weightedScore =
-      (completed * 1 + pending * 0.5 + overdue * -1) / total;
-    const progress = Math.max(
-      0,
-      Math.min(100, Math.round(weightedScore * 100))
-    );
+    const progress = total ? Math.round(totalProgress / total) : 0;
 
     return { progress, completed, pending, overdue, total };
   }
@@ -175,8 +222,8 @@ class GoalServices {
         endDate: new Date(),
       },
       {
-        new: true, // return the updated document
-        runValidators: true, // validate using schema
+        new: true,
+        runValidators: true,
       }
     );
 
@@ -191,10 +238,10 @@ class GoalServices {
     const today = new Date();
 
     const upcomingGoals = await Goal.find({
-      userId,
+      userId: new mongoose.Types.ObjectId(userId),
       status: "pending",
-      targetDate: { $gte: today }, // targetDate is today or in the future
-    }).sort({ targetDate: 1 }); // optional: sort by nearest date first
+      targetDate: { $gte: today },
+    }).sort({ targetDate: 1 });
 
     return upcomingGoals;
   }

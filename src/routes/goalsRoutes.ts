@@ -35,7 +35,7 @@ router
   .get(ValidationMiddleWare.validateToken(), getGoalsCountController);
 
 router
-  .route("/goal/getOveralProgress")
+  .route("/goal/getOverallProgress")
   .get(ValidationMiddleWare.validateToken(), getOverallProgressController);
 
 router

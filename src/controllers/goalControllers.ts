@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import GoalServices from "../services/goalServices";
 import { CustomError } from "../utils/customError";
 import { messaging } from "firebase-admin";
+
 const addGoalController = async (
   req: Request,
   res: Response,
@@ -16,23 +17,21 @@ const addGoalController = async (
       category,
       startDate,
       endDate,
-      title,
       description,
       targetDate,
       status,
-      progress,
+      data,
     } = req.body;
 
     const newGoal = await GoalServices.addGoalService({
       category,
       startDate,
       endDate,
-      title,
       description,
       targetDate,
       status,
       userId,
-      progress,
+      data,
     });
 
     res
@@ -51,7 +50,7 @@ const deleteGoalController = async (
   try {
     const goalId: string = req.params.id;
 
-    await GoalServices.deleteGoalServce(goalId);
+    await GoalServices.deleteGoalService(goalId);
 
     res.status(200).json({ message: "Goal deleted successfully." });
   } catch (err: any) {
@@ -159,7 +158,7 @@ const getUpcomingGoalsController = async (
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    const upcomingGoals = GoalServices.getUpcomingGoalsService(userId);
+    const upcomingGoals = await  GoalServices.getUpcomingGoalsService(userId);
 
     res.status(200).json({
       message: "Successfully fetched upcoming goals",
@@ -178,7 +177,7 @@ const markGoalAsCompletedController = async (
   try {
     const goalId: string = req.params.id;
 
-    const updatedGoal = GoalServices.markGoalAsCompleteService(goalId);
+    const updatedGoal = await GoalServices.markGoalAsCompleteService(goalId);
     res
       .status(200)
       .json({ message: "Goal marked as complete", goal: updatedGoal });
@@ -196,7 +195,7 @@ const UpdateGoalsOverdueStatusController = async (
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    const updated = GoalServices;
+    const updated = await GoalServices.updateGoalStatusService(userId);
 
     if (updated) {
       res.status(200).json({ message: "Goal statuses successfully updated" });
@@ -215,5 +214,5 @@ export {
   getUpcomingGoalsController,
   getOverallProgressController,
   markGoalAsCompletedController,
-UpdateGoalsOverdueStatusController,
+  UpdateGoalsOverdueStatusController,
 };
