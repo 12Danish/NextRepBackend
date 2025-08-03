@@ -38,6 +38,7 @@ const GoalSchema = new mongoose.Schema(
         timestamps: true, // ⏱ Automatically adds `createdAt` and `updatedAt`
     }
 );
-GoalSchema.index({ userId: 1, category: 1, startDate: 1 }, { unique: true });
+GoalSchema.index({ userId: 1, category: 1, title: 1 }, { unique: true });
 
 export const Goal = mongoose.model<IGoal>('Goal', GoalSchema);
+

@@ -17,7 +17,7 @@ import { ValidationMiddleware } from "../middleware/dietInputHandler";
 const router: Router = express.Router();
 
 router
-  .route("/")
+  .route("/diet")
   .post(
     ValidationMiddleware.validateCreateDietInput(),
     createDietController
@@ -29,7 +29,7 @@ router
   );
 
 router
-  .route("/:dietId")
+  .route("/diet/:dietId")
   .get(
     ValidationMiddleware.validateDietIdParam(),
     getDietByIdController
@@ -45,7 +45,7 @@ router
   );
 
 router
-  .route("/user/:userId")
+  .route("/diet/user/:userId")
   .get(
     ValidationMiddleware.validateUserIdParam(),
     ValidationMiddleware.validatePaginationQuery(),
@@ -53,7 +53,7 @@ router
   );
 
 router
-  .route("/user/:userId/summary")
+  .route("/diet/user/:userId/summary")
   .get(
     ValidationMiddleware.validateUserIdParam(),
     ValidationMiddleware.validateDateRangeQuery(),
@@ -61,7 +61,7 @@ router
   );
 
 router
-  .route("/user/:userId/today")
+  .route("/diet/user/:userId/today")
   .get(
     ValidationMiddleware.validateUserIdParam(),
     ValidationMiddleware.validatePaginationQuery(),
@@ -69,7 +69,7 @@ router
   );
 
 router
-  .route("/user/:userId/date/:date")
+  .route("/diet/user/:userId/date/:date")
   .get(
     ValidationMiddleware.validateUserIdParam(),
     ValidationMiddleware.validateDateParam(),
@@ -78,7 +78,7 @@ router
   );
 
 router
-  .route("/search/:userId")
+  .route("/diet/search/:userId")
   .get(
     ValidationMiddleware.validateUserIdParam(),
     ValidationMiddleware.validateSearchQuery(),
