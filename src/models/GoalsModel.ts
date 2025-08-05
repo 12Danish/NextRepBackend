@@ -94,7 +94,8 @@ export const GoalSchema = new mongoose.Schema(
               Array.isArray(value.previousWeights) &&
               value.previousWeights.every(
                 (entry: any) =>
-                  typeof entry.weight === "number" && entry.date instanceof Date
+                  typeof entry.weight === "number" &&
+                  (entry.date instanceof Date || !isNaN(Date.parse(entry.date)))
               )
             );
           }

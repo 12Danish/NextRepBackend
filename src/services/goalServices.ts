@@ -136,6 +136,13 @@ class GoalServices {
     if (category) filter.category = category;
     if (status) filter.status = status;
 
+    console.log("Goal Services");
+    console.log(`skip : ${skip}`);
+    console.log(`limit : ${limit}`);
+    console.log(`status : ${status}`);
+    console.log(`category : ${category}`);
+    console.log("filter :", JSON.stringify(filter, null, 2));
+
     const goals = await Goal.find(filter)
       .skip(skip)
       .limit(limit)
@@ -161,6 +168,8 @@ class GoalServices {
     const goals = await Goal.find({
       userId: new mongoose.Types.ObjectId(userId),
     });
+
+    console.log("Progress Service");
 
     let completed = 0;
     let pending = 0;

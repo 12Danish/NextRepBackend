@@ -52,3 +52,5 @@ router
     ValidationMiddleWare.validateToken(),
     UpdateGoalsOverdueStatusController
   );
+
+  export default router

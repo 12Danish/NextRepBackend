@@ -4,12 +4,16 @@ import { errorHandler } from "./middleware/errorHandler";
 import authRoutes from "./routes/authRoutes";
 import sleepRoutes from "./routes/sleepRoutes";
 import dietRoutes from "./routes/dietRoutes";
+import goalsRoutes from "./routes/goalsRoutes";
+import cookieParser from "cookie-parser";
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 config.setupSwagger(app);
 app.use("/api", authRoutes);
+app.use("/api", goalsRoutes);
 app.use("/api", sleepRoutes);
 app.use("/api", dietRoutes);
 app.use(errorHandler);
@@ -20,5 +24,4 @@ config.connectDB().then(() => {
   });
 });
 
-
-export {app}
+export { app };

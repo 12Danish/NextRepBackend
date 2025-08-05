@@ -14,6 +14,11 @@ export const errorHandler = (
       message: err.message,
       errors: err.errors || [],
     });
+  } else if (err.name === "ValidationError") {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
   }
 
   // Fallback for unknown errors

@@ -108,6 +108,8 @@ class ValidationMiddleWare {
       }
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || "sync");
+        console.log("decoded")
+        console.log(decoded)
         req.user = decoded;
         return next();
       } catch {
