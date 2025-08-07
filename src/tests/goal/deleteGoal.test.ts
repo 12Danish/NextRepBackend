@@ -11,7 +11,6 @@ describe("Delete Goals Tests", () => {
     const weightGoalData = {
       category: "weight",
       startDate: today.toISOString(),
-      endDate: tomorrow.toISOString(),
       targetDate: tomorrow.toISOString(),
       description: "Lose 5kg",
       status: "pending",

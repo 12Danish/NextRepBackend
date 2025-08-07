@@ -72,7 +72,7 @@ export const GoalSchema = new mongoose.Schema(
     userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
     startDate: { type: Date, required: true },
     description: { type: String },
-    endDate: { type: Date, required: true },
+    endDate: { type: Date || null, default: "null" },
     targetDate: { type: Date, required: true },
     status: {
       type: String,
@@ -82,47 +82,6 @@ export const GoalSchema = new mongoose.Schema(
     data: {
       type: Schema.Types.Mixed,
       required: true,
-      validate: {
-        validator: function (this: IBaseGoal, value: any) {
-          if (this.category === "weight") {
-            return (
-              value &&
-              typeof value.goalType === "string" &&
-              ["gain", "loss", "maintenance"].includes(value.goalType) &&
-              typeof value.targetWeight === "number" &&
-              typeof value.currentWeight === "number" &&
-              Array.isArray(value.previousWeights) &&
-              value.previousWeights.every(
-                (entry: any) =>
-                  typeof entry.weight === "number" &&
-                  (entry.date instanceof Date || !isNaN(Date.parse(entry.date)))
-              )
-            );
-          }
-          if (this.category === "diet") {
-            return (
-              value &&
-              typeof value.targetCalories === "number" &&
-              typeof value.targetProteins === "number" &&
-              typeof value.targetFats === "number" &&
-              typeof value.targetCarbs === "number"
-            );
-          }
-          if (this.category === "sleep") {
-            return value && typeof value.targetHours === "number";
-          }
-          if (this.category === "workout") {
-            return (
-              value &&
-              typeof value.exerciseName === "string" &&
-              (typeof value.targetMinutes === "number" ||
-                typeof value.targetReps === "number")
-            );
-          }
-          return false;
-        },
-        message: "Invalid data structure for the specified category.",
-      },
     },
   },
   {

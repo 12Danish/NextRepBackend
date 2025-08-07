@@ -8,23 +8,38 @@ import {
   getUpcomingGoalsController,
   updateGoalDetailsController,
   UpdateGoalsOverdueStatusController,
-  markGoalAsCompletedController,
+  changeGoalCompletionStatus,
 } from "../controllers/goalControllers";
+
+import { GoalValidationMiddleware } from "../middleware/goalInputHandler";
 
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();
 
 router
   .route("/goal/add")
-  .post(ValidationMiddleWare.validateToken(), addGoalController);
+  .post(
+    ValidationMiddleWare.validateToken(),
+    GoalValidationMiddleware.validateAddGoalCategorySpecificDataInput(),
+    addGoalController
+  );
 
 router
   .route("/goal/delete/:id")
-  .delete(ValidationMiddleWare.validateToken(), deleteGoalController);
+  .delete(
+    ValidationMiddleWare.validateToken(),
+    GoalValidationMiddleware.validateGoalIdInParams(),
+    deleteGoalController
+  );
 
 router
-  .route("/goal/updateDetails/:id")
-  .post(ValidationMiddleWare.validateToken(), updateGoalDetailsController);
+  .route("/goal/update/:id")
+  .put(
+    ValidationMiddleWare.validateToken(),
+    GoalValidationMiddleware.validateGoalIdInParams(),
+    GoalValidationMiddleware.validateUpdateGoalInput(),
+    updateGoalDetailsController
+  );
 
 router
   .route("/goal/getGoals")
@@ -43,14 +58,17 @@ router
   .get(ValidationMiddleWare.validateToken(), getUpcomingGoalsController);
 
 router
-  .route("/goal/markCompleted/:id")
-  .get(ValidationMiddleWare.validateToken(), markGoalAsCompletedController);
-
-router
-  .route("/goal/updateGoalsOverdueStatus")
+  .route("/goal/changeCompletionStatus/:id")
   .get(
     ValidationMiddleWare.validateToken(),
-    UpdateGoalsOverdueStatusController
+    GoalValidationMiddleware.validateGoalIdInParams(),
+    changeGoalCompletionStatus
   );
 
-  export default router
+router.route("/goal/updateGoalsOverdueStatus").get(
+  ValidationMiddleWare.validateToken(),
+
+  UpdateGoalsOverdueStatusController
+);
+
+export default router;

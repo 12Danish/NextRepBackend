@@ -22,7 +22,7 @@ describe("Get Goals Tests", () => {
       {
         category: "weight",
         startDate: today.toISOString(),
-        endDate: tomorrow.toISOString(),
+        
         targetDate: tomorrow.toISOString(),
         description: "Lose 5kg",
         status: "pending",
@@ -36,7 +36,7 @@ describe("Get Goals Tests", () => {
       {
         category: "workout",
         startDate: today.toISOString(),
-        endDate: tomorrow.toISOString(),
+        
         targetDate: tomorrow.toISOString(),
         description: "Run 30 minutes daily",
         status: "completed",
@@ -48,7 +48,7 @@ describe("Get Goals Tests", () => {
       {
         category: "weight",
         startDate: today.toISOString(),
-        endDate: tomorrow.toISOString(),
+       
         targetDate: tomorrow.toISOString(),
         description: "Lose 3kg",
         status: "completed",
@@ -185,7 +185,7 @@ describe("Get Goals Tests", () => {
     expect(goalsCountRes.body.goalsCount).toBe(2);
   });
 
-  it.only("Should get the overall progress", async () => {
+  it("Should get the overall progress", async () => {
     const goalProgRes = await agent.get("/api/goal/getOverallProgress");
     console.log("progress");
 
@@ -194,5 +194,13 @@ describe("Get Goals Tests", () => {
     expect(goalProgRes.status).toBe(200);
 
     expect(goalProgRes.body.progress).toBeTruthy();
+  });
+
+  it("Should only return the goals which are pending and target date is gte to today", async () => {
+    const upcomingGoalsRes = await agent.get("/api/goal/getUpcomingGoals");
+
+    expect(upcomingGoalsRes.status).toBe(200);
+
+    expect(upcomingGoalsRes.body.goals.length).toBe(1);
   });
 });

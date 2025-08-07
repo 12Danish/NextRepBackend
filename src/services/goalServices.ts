@@ -31,7 +31,7 @@ interface IWorkoutGoalData {
 interface addGoalServiceProps {
   category: "weight" | "diet" | "workout" | "sleep";
   startDate: Date;
-  endDate: Date;
+  endDate: Date | null;
   targetDate: Date;
   status: "pending" | "completed" | "overdue";
   userId: string;
@@ -108,10 +108,15 @@ class GoalServices {
     goalId: string;
     updates: goalUpdatesServiceProps;
   }) {
+    // category updates should not be allowed
     if (!mongoose.Types.ObjectId.isValid(goalId)) {
       throw new CustomError("Invalid goal ID", 400);
     }
 
+    if (updates.targetDate) {
+    }
+    if (updates.startDate) {
+    }
     const updatedGoal = await Goal.findByIdAndUpdate(goalId, updates, {
       new: true,
       runValidators: true,
@@ -219,26 +224,32 @@ class GoalServices {
     return { progress, completed, pending, overdue, total };
   }
 
-  static async markGoalAsCompleteService(goalId: string) {
+  static async changeGoalStatusService({
+    goalId,
+    currentStatus,
+  }: {
+    goalId: string;
+    currentStatus: "completed" | "pending" | "overdue";
+  }) {
     if (!mongoose.Types.ObjectId.isValid(goalId)) {
       throw new CustomError("Invalid goal ID", 400);
     }
 
-    const updatedGoal = await Goal.findByIdAndUpdate(
-      goalId,
-      {
-        status: "completed",
-        endDate: new Date(),
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    if (!updatedGoal) {
-      throw new CustomError("Goal not found or could not be updated", 404);
+    const goal = await Goal.findById(goalId);
+    if (!goal) {
+      throw new CustomError("Goal not found", 404);
     }
+    const now = new Date();
+
+    if (currentStatus == "pending" || currentStatus == "overdue") {
+      goal.status = "completed";
+      goal.endDate = now;
+    } else {
+      const isOverdue = goal.targetDate && new Date(goal.targetDate) < now;
+      goal.status = isOverdue ? "overdue" : "pending";
+    }
+
+    const updatedGoal = await goal.save();
 
     return updatedGoal;
   }
@@ -271,6 +282,7 @@ class GoalServices {
 
     return result;
   }
+
 }
 
 export default GoalServices;

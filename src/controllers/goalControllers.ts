@@ -16,19 +16,21 @@ const addGoalController = async (
     const {
       category,
       startDate,
-      endDate,
+
       description,
       targetDate,
       status,
       data,
     } = req.body;
 
+    const endDate = status == "completed" ? new Date(targetDate) : null;
+
     const newGoal = await GoalServices.addGoalService({
       category,
       startDate,
-      endDate,
       description,
       targetDate,
+      endDate,
       status,
       userId,
       data,
@@ -144,7 +146,7 @@ const getOverallProgressController = async (
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    console.log("Progress controller called")
+    console.log("Progress controller called");
     const progress = await GoalServices.getOverallProgressService(userId);
 
     res.status(200).json({ message: "Progress fetched", progress: progress });
@@ -173,18 +175,22 @@ const getUpcomingGoalsController = async (
   }
 };
 
-const markGoalAsCompletedController = async (
+const changeGoalCompletionStatus = async (
   req: any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const goalId: string = req.params.id;
-
-    const updatedGoal = await GoalServices.markGoalAsCompleteService(goalId);
-    res
-      .status(200)
-      .json({ message: "Goal marked as complete", goal: updatedGoal });
+    const currentStatus = req.query.currentStatus;
+    console.log("Toggle status controller");
+    console.log(goalId);
+    console.log(currentStatus);
+    const updatedGoal = await GoalServices.changeGoalStatusService({
+      goalId,
+      currentStatus,
+    });
+    res.status(200).json({ message: "Goal status updated", goal: updatedGoal });
   } catch (err) {
     next(err);
   }
@@ -217,6 +223,6 @@ export {
   getGoalsCountController,
   getUpcomingGoalsController,
   getOverallProgressController,
-  markGoalAsCompletedController,
+  changeGoalCompletionStatus,
   UpdateGoalsOverdueStatusController,
 };
