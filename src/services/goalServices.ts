@@ -108,23 +108,37 @@ class GoalServices {
     goalId: string;
     updates: goalUpdatesServiceProps;
   }) {
-    // category updates should not be allowed
     if (!mongoose.Types.ObjectId.isValid(goalId)) {
       throw new CustomError("Invalid goal ID", 400);
     }
 
-    if (updates.targetDate) {
+    // Fetch current goal
+    const goal = await Goal.findById(goalId);
+    if (!goal) {
+      throw new CustomError("Goal not found", 404);
     }
-    if (updates.startDate) {
+
+    const now = new Date();
+
+    // If startDate or targetDate is being updated
+    if (updates.startDate || updates.targetDate) {
+      const newStartDate = updates.startDate ?? goal.startDate;
+      const newTargetDate = updates.targetDate ?? goal.targetDate;
+
+      // Only auto-update status if it's currently pending or overdue
+      if (goal.status === "pending" || goal.status === "overdue") {
+        if (newTargetDate < now) {
+          updates.status = "overdue";
+        } else if (newTargetDate >= now) {
+          updates.status = "pending";
+        }
+      }
     }
+
     const updatedGoal = await Goal.findByIdAndUpdate(goalId, updates, {
       new: true,
       runValidators: true,
     });
-
-    if (!updatedGoal) {
-      throw new CustomError("Goal not found", 404);
-    }
 
     return updatedGoal;
   }
@@ -282,7 +296,6 @@ class GoalServices {
 
     return result;
   }
-
 }
 
 export default GoalServices;

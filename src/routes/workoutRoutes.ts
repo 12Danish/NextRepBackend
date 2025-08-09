@@ -1,10 +1,5 @@
 import express, { Router } from "express";
-import {
-  firebaseLoginController,
-  customLoginController,
-  registerUserController,
-  logoutController,
-} from "../controllers/userControllers";
+
 
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();

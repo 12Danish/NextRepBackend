@@ -15,6 +15,10 @@ export interface IWorkout extends Document {
   updatedAt: Date;
 }
 
+
+
+
+
 const WorkoutSchema = new mongoose.Schema(
   {
     type: {
