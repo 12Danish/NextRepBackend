@@ -11,8 +11,14 @@ interface addOrUpdateWorkoutServiceProps {
   >;
   goalId?: mongoose.Types.ObjectId | string | null;
   workoutDateAndTime: Date;
-  duration?: Number;
-  reps?: Number;
+  duration?: number;
+  reps?: number;
+}
+
+interface getWorkoutScheduleServiceProps {
+  userId: string;
+  offset: number;
+  viewType: "day" | "month" | "year";
 }
 
 class WorkoutServices {
@@ -57,7 +63,28 @@ class WorkoutServices {
     return true;
   }
 
-  static async getWorkoutScheduleService() {}
+  static async getWorkoutScheduleService({
+    userId,
+    viewType,
+    offset,
+  }: getWorkoutScheduleServiceProps) {
+    const { start, end } = CommonUtlis.calculate_start_and_end_dates(
+      viewType,
+      offset
+    );
+
+    const workouts = await Workout.find({
+      userId,
+      workoutDateAndTime: { $gte: start, $lt: end },
+    }).sort({ workoutDateAndTime: 1 });
+
+    return {
+      start,
+      end,
+      count: workouts.length,
+      workouts,
+    };
+  }
 
   static async updateWorkoutService({
     userId,

@@ -26,8 +26,8 @@ const addWorkoutController = async (
     const newWorkout = await WorkoutServices.addWorkoutService({
       exerciseName,
       type,
-      duration,
-      reps,
+      duration : Number(duration),
+      reps : Number(reps),
       targetMuscleGroup,
       goalId,
       workoutDateAndTime,
@@ -73,12 +73,10 @@ const updateWorkoutController = async (
       workoutId,
     });
 
-    res
-      .status(200)
-      .json({
-        message: "Goal updated successfully.",
-        updatedWorkout: updatedWorkout,
-      });
+    res.status(200).json({
+      message: "Goal updated successfully.",
+      updatedWorkout: updatedWorkout,
+    });
   } catch (err) {
     next(err);
   }
@@ -90,6 +88,18 @@ const getWorkoutSchedule = async (
   next: NextFunction
 ) => {
   try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const viewType = req.query.viewType ? req.query.viewType : "day";
+    const offset = req.query.offset ? req.query.offset : 0;
+
+    const workouts = await WorkoutServices.getWorkoutScheduleService({
+      userId,
+      viewType,
+      offset: Number(offset),
+    });
+
+    res.status(200).json(workouts);
   } catch (err) {
     next(err);
   }
