@@ -16,7 +16,7 @@ import SleepInputHandler from "../middleware/sleepInputHandler";
 const router: Router = express.Router();
 
 router
-  .route("/")
+  .route("/sleep")
   .post(
     SleepInputHandler.validateCreateSleepInput(),
     createSleepController
@@ -27,7 +27,7 @@ router
   );
 
 router
-  .route("/:sleepId")
+  .route("/sleep/:sleepId")
   .get(
     SleepInputHandler.validateSleepIdParam(),
     getSleepByIdController
@@ -44,28 +44,28 @@ router
   );
 
 router
-  .route("/date/:date")
+  .route("/sleep/date/:date")
   .get(
     SleepInputHandler.validateDateParam(),
     getSleepByDateController
   );
 
 router
-  .route("/stats/:userId")
+  .route("/sleep/stats/:userId")
   .get(
     SleepInputHandler.validateUserIdParam(),
     getSleepStatsController
   );
 
 router
-  .route("/bulk")
+  .route("/sleep/bulk")
   .post(
     SleepInputHandler.validateMultipleSleepInput(),
     createMultipleSleepController
   );
 
 router
-  .route("/user/:userId")
+  .route("/sleep/user/:userId")
   .get(
     SleepInputHandler.validateUserIdParam(),
     getAllSleepController

@@ -1,43 +1,94 @@
-import mongoose , {Schema, Document} from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
-export interface IGoal extends Document {
-    category: "weight" | "diet" | "workout" | "sleep";
-    userId: mongoose.Types.ObjectId;
-    startDate: Date;
-    endDate: Date;
-    title: string;
-    description?: string;
-    targetDate: Date;
-    status: "pending" | "completed" | "overdue";
-    progress: number; // Percentage of goal completion
-    createdAt: Date;
-    updatedAt: Date;
+// Base interface for common goal fields
+interface IBaseGoal extends Document {
+  category: "weight" | "diet" | "workout" | "sleep";
+  userId: mongoose.Types.ObjectId;
+  startDate: Date;
+  endDate: Date;
+  targetDate: Date;
+  status: "pending" | "completed" | "overdue";
+  createdAt: Date;
+  updatedAt: Date;
+  data: any; // Temporarily use any; will be refined in IGoal
+  description?: string;
 }
 
-const GoalSchema = new mongoose.Schema(
-    {
-        category: {
-            type: String,
-            enum: ["weight", "diet", "workout", "sleep"],
-            required: true,
-        },
-        userId: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
-        startDate: { type: Date, required: true },
-        endDate: { type: Date, required: true },
-        title: { type: String, required: true },
-        description: { type: String },
-        targetDate: { type: Date, required: true },
-        status: {
-            type: String,
-            enum: ["pending", "completed", "overdue"],
-            default: "pending",
-        },
-        progress: { type: Number, default: 0 }, // Default progress is 0%
-    },
-    {
-        timestamps: true, // ⏱ Automatically adds `createdAt` and `updatedAt`
-    }
-);
-GoalSchema.index({ userId: 1, category: 1, startDate: 1 }, { unique: true });
+// Category-specific interfaces
+interface IWeightGoalData {
+  goalType: "gain" | "loss" | "maintenance";
+  targetWeight: number;
+  currentWeight: number;
+  previousWeights: { weight: number; date: Date }[];
+}
 
-export const Goal = mongoose.model<IGoal>('Goal', GoalSchema);
+interface IDietGoalData {
+  targetCalories: number;
+  targetProteins: number;
+  targetFats: number;
+  targetCarbs: number;
+}
+
+interface ISleepGoalData {
+  targetHours: number;
+}
+
+interface IWorkoutGoalData {
+  targetMinutes?: number;
+  targetReps?: number;
+  exerciseName: string;
+}
+
+// Discriminated union for IGoal
+interface IWeightGoal extends IBaseGoal {
+  category: "weight";
+  data: IWeightGoalData;
+}
+
+interface IDietGoal extends IBaseGoal {
+  category: "diet";
+  data: IDietGoalData;
+}
+
+interface ISleepGoal extends IBaseGoal {
+  category: "sleep";
+  data: ISleepGoalData;
+}
+
+interface IWorkoutGoal extends IBaseGoal {
+  category: "workout";
+  data: IWorkoutGoalData;
+}
+
+export type IGoal = IWeightGoal | IDietGoal | ISleepGoal | IWorkoutGoal;
+
+export const GoalSchema = new mongoose.Schema(
+  {
+    category: {
+      type: String,
+      enum: ["weight", "diet", "workout", "sleep"],
+      required: true,
+    },
+    userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
+    startDate: { type: Date, required: true },
+    description: { type: String },
+    endDate: { type: Date || null, default: "null" },
+    targetDate: { type: Date, required: true },
+    status: {
+      type: String,
+      enum: ["pending", "completed", "overdue"],
+      default: "pending",
+    },
+    data: {
+      type: Schema.Types.Mixed,
+      required: true,
+    },
+  },
+  {
+    timestamps: true, // Automatically adds createdAt and updatedAt
+  }
+);
+
+// Unique index on userId and category
+GoalSchema.index({ userId: 1 });
+export const Goal = mongoose.model<IGoal>("Goal", GoalSchema);

@@ -84,6 +84,40 @@ class ValidationMiddleWare {
       },
     ];
   }
+
+  /**
+   * Middleware to validate JWT token from cookies.
+   *
+   * - Retrieves the JWT token from the `token` cookie.
+   * - If token is missing, responds with a `401 Unauthorized` error.
+   * - If token is invalid or expired, responds with a `403 Forbidden` error.
+   * - If token is valid, attaches the decoded user payload to `req.user`.
+   *
+   * This middleware is typically used to protect routes that require
+   * authentication.
+   *
+   * @returns {Function} An Express middleware function for token validation.
+   */
+  static validateToken() {
+    return (req: any, response: Response, next: NextFunction) => {
+      const token = req.cookies?.token;
+
+      if (!token) {
+        const error = new CustomError("No Token cookie in request", 401);
+        return next(error);
+      }
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "sync");
+        console.log("decoded")
+        console.log(decoded)
+        req.user = decoded;
+        return next();
+      } catch {
+        const error = new CustomError("Invalid or Expired Token", 403);
+        return next(error);
+      }
+    };
+  }
 }
 
 export { ValidationMiddleWare };
