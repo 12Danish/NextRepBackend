@@ -1,129 +1,193 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import SleepServices from "../services/sleepService";
-import { CustomError } from "../utils/customError";
 
-// Async error handler wrapper
-type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<any>;
-const asyncHandler = (fn: AsyncHandler) => (req: Request, res: Response, next: NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
+/**
+ * @desc    Create a new sleep entry for the authenticated user
+ * @route   POST /api/sleep
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ *
+ * @body
+ * {
+ *   "startTime": "Date",   // Required - Sleep start time
+ *   "endTime": "Date",     // Required - Sleep end time
+ *   "quality": "string",   // Optional - e.g., "good", "poor"
+ *   "notes": "string"      // Optional - additional notes
+ * }
+ *
+ * @returns
+ * {
+ *   "message": "Sleep entry created successfully",
+ *   "data": { ...newSleep }
+ * }
+ *
+ * @errors
+ * - 400 if required fields are missing
+ * - 500 in case of unexpected error
+ */
+const createSleepController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const sleepData = { ...req.body, userId };
+
+    const newSleep = await SleepServices.createSleepService(sleepData);
+
+    res.status(201).json({
+      message: "Sleep entry created successfully",
+      data: newSleep,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-// Create new sleep entry
-export const createSleepController = asyncHandler(async (req: Request, res: Response) => {
-  const sleepData = req.body;
-  
-  const newSleep = await SleepServices.createSleepService(sleepData);
-  
-  res.status(201).json({
-    success: true,
-    message: "Sleep entry created successfully",
-    data: newSleep
-  });
-});
+/**
+ * @desc    Get sleep entries for the authenticated user
+ * @route   GET /api/sleep
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @query
+ * viewType (string)  - "day", "week", or "month" (default "day")
+ * offset (number)    - Offset from the current period, e.g., -1 for previous, 1 for next (default 0)
+ *
+ * @returns
+ * {
+ *   "message": "Sleep entries retrieved successfully",
+ *   "data": [ ...sleepEntries ]
+ * }
+ *
+ * @errors
+ * - 500 in case of unexpected error
+ */
+const getSleepController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const viewType = req.query.viewType ? req.query.viewType : "day";
+    const offset = req.query.offset ? Number(req.query.offset) : 0;
 
-// Get sleep entries for a user
-export const getSleepController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  
-  const sleepEntries = await SleepServices.getSleepService(userId);
-  
-  res.status(200).json({
-    success: true,
-    message: "Sleep entries retrieved successfully",
-    data: sleepEntries
-  });
-});
+    const sleepEntries = await SleepServices.getSleepService({
+      userId,
+      viewType,
+      offset,
+    });
 
-// Get specific sleep entry by ID
-export const getSleepByIdController = asyncHandler(async (req: Request, res: Response) => {
-  const { sleepId } = req.params;
-  
-  const sleep = await SleepServices.getSleepByIdService(sleepId);
-  
-  res.status(200).json({
-    success: true,
-    message: "Sleep entry retrieved successfully",
-    data: sleep
-  });
-});
+    res.status(200).json({
+      message: "Sleep entries retrieved successfully",
+      data: sleepEntries,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-// Update sleep entry
-export const updateSleepController = asyncHandler(async (req: Request, res: Response) => {
-  const { sleepId } = req.params;
-  const updates = req.body;
-  
-  const updatedSleep = await SleepServices.updateSleepService(sleepId, updates);
-  
-  res.status(200).json({
-    success: true,
-    message: "Sleep entry updated successfully",
-    data: updatedSleep
-  });
-});
+/**
+ * @desc    Update a sleep entry
+ * @route   PATCH /api/sleep/:sleepId
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ *
+ * @params
+ * sleepId (string) - ID of the sleep entry
+ *
+ * @body
+ * {
+ *   "fieldToUpdate": "value"
+ * }
+ *
+ * @returns
+ * {
+ *   "message": "Sleep entry updated successfully",
+ *   "data": { ...updatedSleep }
+ * }
+ *
+ * @errors
+ * - 404 if no entry found with given ID
+ * - 500 in case of unexpected error
+ */
+const updateSleepController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const sleepId = req.params.sleepId;
+    const updates = req.body;
 
-// Delete sleep entry
-export const deleteSleepController = asyncHandler(async (req: Request, res: Response) => {
-  const { sleepId } = req.params;
-  
-  const deletedSleep = await SleepServices.deleteSleepService(sleepId);
-  
-  res.status(200).json({
-    success: true,
-    message: "Sleep entry deleted successfully",
-    data: deletedSleep
-  });
-});
+    const updatedSleep = await SleepServices.updateSleepService(
+      sleepId,
+      updates
+    );
 
-// Get sleep entry by date
-export const getSleepByDateController = asyncHandler(async (req: Request, res: Response) => {
-  const { date } = req.params;
-  
-  const sleepEntry = await SleepServices.getSleepByDateService(new Date(date));
-  
-  res.status(200).json({
-    success: true,
-    message: "Sleep entry for date retrieved successfully",
-    data: sleepEntry
-  });
-});
+    res.status(200).json({
+      message: "Sleep entry updated successfully",
+      data: updatedSleep,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-// Get sleep stats for a user
-export const getSleepStatsController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  
-  const stats = await SleepServices.getSleepStatsService(userId);
-  
-  res.status(200).json({
-    success: true,
-    message: "Sleep statistics retrieved successfully",
-    data: stats
-  });
-});
+/**
+ * @desc    Delete a sleep entry
+ * @route   DELETE /api/sleep/:sleepId
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @params
+ * sleepId (string) - ID of the sleep entry
+ *
+ * @returns
+ * {
+ *   "message": "Sleep entry deleted successfully"
+ * }
+ *
+ * @errors
+ * - 404 if no entry found with given ID
+ * - 500 in case of unexpected error
+ */
+const deleteSleepController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const sleepId = req.params.sleepId;
 
-// Create multiple sleep records
-export const createMultipleSleepController = asyncHandler(async (req: Request, res: Response) => {
-  const sleepDataArray = req.body;
-  
-  const newSleepEntries = await SleepServices.createMultipleSleepService(sleepDataArray);
-  
-  res.status(201).json({
-    success: true,
-    message: "Multiple sleep entries created successfully",
-    data: newSleepEntries,
-    count: newSleepEntries.length
-  });
-});
+    await SleepServices.deleteSleepService(sleepId);
 
-// Get all sleep entries for a specific user (alias for getSleepController)
-export const getAllSleepController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  
-  const sleepEntries = await SleepServices.getSleepService(userId);
-  
-  res.status(200).json({
-    success: true,
-    message: "All sleep entries retrieved successfully",
-    data: sleepEntries
-  });
-});
+    res.status(200).json({
+      message: "Sleep entry deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
+export {
+  createSleepController,
+  getSleepController,
+  updateSleepController,
+  deleteSleepController,
+};

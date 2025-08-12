@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 import WorkoutServices from "../services/workoutServices";
-import { nextTick } from "process";
+
 
 const addWorkoutController = async (
   req: any,
@@ -65,9 +65,9 @@ const updateWorkoutController = async (
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
     const updates = req.body;
-    const workoutId = req.params.get("id");
+    const workoutId = req.params.id;
 
-    const updatedWorkout = WorkoutServices.updateWorkoutService({
+    const updatedWorkout = await WorkoutServices.updateWorkoutService({
       userId,
       updates,
       workoutId,
@@ -90,7 +90,7 @@ const getWorkoutSchedule = async (
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
-    const viewType = req.query.viewType ? req.query.viewType : "day";
+    const viewType = req.query.viewType ? req.query.viewType : "month";
     const offset = req.query.offset ? req.query.offset : 0;
 
     const workouts = await WorkoutServices.getWorkoutScheduleService({

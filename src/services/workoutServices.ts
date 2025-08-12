@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import { CustomError } from "../utils/customError";
 import { Workout } from "../models/WorkoutModel";
-
+import CommonUtlis from "./commonUtils";
+import { getScheduleServiceProps } from "./commonUtils";
 interface addOrUpdateWorkoutServiceProps {
   exerciseName: string;
   type: "weight lifting" | "cardio" | "cross fit" | "yoga";
@@ -13,12 +14,6 @@ interface addOrUpdateWorkoutServiceProps {
   workoutDateAndTime: Date;
   duration?: number;
   reps?: number;
-}
-
-interface getWorkoutScheduleServiceProps {
-  userId: string;
-  offset: number;
-  viewType: "day" | "month" | "year";
 }
 
 class WorkoutServices {
@@ -67,7 +62,7 @@ class WorkoutServices {
     userId,
     viewType,
     offset,
-  }: getWorkoutScheduleServiceProps) {
+  }: getScheduleServiceProps) {
     const { start, end } = CommonUtlis.calculate_start_and_end_dates(
       viewType,
       offset
@@ -75,7 +70,7 @@ class WorkoutServices {
 
     const workouts = await Workout.find({
       userId,
-      workoutDateAndTime: { $gte: start, $lt: end },
+      workoutDateAndTime: { $gte: start, $lte: end },
     }).sort({ workoutDateAndTime: 1 });
 
     return {
@@ -98,7 +93,6 @@ class WorkoutServices {
     if (!mongoose.Types.ObjectId.isValid(workoutId)) {
       throw new CustomError("Invalid goal ID", 400);
     }
-
     const updatedWorkout = await Workout.findByIdAndUpdate(workoutId, updates, {
       new: true,
       runValidators: true,

@@ -36,7 +36,7 @@ const WorkoutSchema = new mongoose.Schema(
       required: true,
     },
     goalId: { type: mongoose.Types.ObjectId, ref: "Goal" },
-    workoutDateAnTime: { type: Date },
+    workoutDateAndTime: { type: Date, required:true },
   },
   {
     timestamps: true, // ⏱ Automatically adds `createdAt` and `updatedAt`

@@ -1,228 +1,250 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import DietServices from "../services/dietService";
-import { CustomError } from "../utils/customError";
 
-// Async error handler wrapper
-type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<any>;
-const asyncHandler = (fn: AsyncHandler) => (req: Request, res: Response, next: NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
+/**
+ * @desc    Create a new diet entry for the authenticated user
+ * @route   POST /api/diet
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ *
+ * @body
+ * {
+ *   "foodName": "string",              // Required - Name of the food
+ *   "meal": "breakfast|lunch|dinner|snack", // Required - Meal type
+ *   "calories": number,                 // Required - Total calories
+ *   "carbs": number,                    // Required - Carbohydrates in grams
+ *   "protein": number,                  // Required - Protein in grams
+ *   "fat": number,                      // Required - Fat in grams
+ *   "mealDateAndTime": "Date",          // Required - Date and time of the meal
+ *   "mealWeight": number,               // Optional - Weight of the meal in grams
+ *   "goalId": "string"                   // Optional - Related goal ID
+ * }
+ *
+ * @returns
+ * {
+ *   "message": "Diet entry created successfully",
+ *   "data": { ...newDiet }
+ * }
+ *
+ * @errors
+ * - 400 if required fields are missing or invalid
+ * - 409 if entry already exists for given meal and foodName
+ * - 500 in case of unexpected error
+ */
+const createDietController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+
+    const dietData = { ...req.body, userId };
+
+    const newDiet = await DietServices.createDietService(dietData);
+
+    res.status(201).json({
+      message: "Diet entry created successfully",
+      data: newDiet,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-// Create new diet entry
-export const createDietController = asyncHandler(async (req: Request, res: Response) => {
-  const dietData = req.body;
-  
-  const newDiet = await DietServices.createDietService(dietData);
-  
-  res.status(201).json({
-    success: true,
-    message: "Diet entry created successfully",
-    data: newDiet
-  });
-});
+/**
+ * @desc    Get diet entries for the authenticated user with optional filters and pagination
+ * @route   GET /api/diet
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @query
+ * viewType (string)  - "day", "week", or "month" (default "day")
+ * offset (number)    - Offset from the current period (default 0)
+ *
+ * @returns
+ * {
+ *   "message": "Diet entries retrieved successfully",
+ *   "data": [ ...dietEntries ]
+ * }
+ *
+ * @errors
+ * - 500 in case of unexpected error
+ */
+const getDietsController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const viewType = req.query.viewType ? req.query.viewType : "day";
+    const offset = req.query.offset ? Number(req.query.offset) : 0;
 
-// Get diets with filters and pagination
-export const getDietsController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, meal, status, startDate, endDate } = req.query;
-  const { page, limit, sortBy, sortOrder } = req.query;
+    const diets = await DietServices.getDietsService({
+      userId,
+      viewType,
+      offset,
+    });
 
-  const filters = {
-    ...(userId && { userId: userId as string }),
-    ...(meal && { meal: meal as "breakfast" | "lunch" | "dinner" | "snack" }),
-    ...(status && { status: status as "taken" | "next" | "overdue" | "skipped" }),
-    ...(startDate && { startDate: startDate as string }),
-    ...(endDate && { endDate: endDate as string })
-  };
+    res.status(200).json({
+      message: "Diet entries retrieved successfully",
+      data: diets,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-  const options = {
-    ...(page && { page: parseInt(page as string) }),
-    ...(limit && { limit: parseInt(limit as string) }),
-    ...(sortBy && { sortBy: sortBy as "createdAt" | "updatedAt" | "calories" | "foodName" }),
-    ...(sortOrder && { sortOrder: sortOrder as "asc" | "desc" })
-  };
+/**
+ * @desc    Update a diet entry
+ * @route   PATCH /api/diet/:dietId
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ *
+ * @params
+ * dietId (string) - ID of the diet entry
+ *
+ * @body
+ * {
+ *   "fieldToUpdate": "value"
+ * }
+ *
+ * @returns
+ * {
+ *   "message": "Diet entry updated successfully",
+ *   "data": { ...updatedDiet }
+ * }
+ *
+ * @errors
+ * - 404 if no entry found with given ID
+ * - 500 in case of unexpected error
+ */
+const updateDietController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { dietId } = req.params;
+    const updates = req.body;
 
-  const result = await DietServices.getDietsService(filters, options);
-  
-  res.status(200).json({
-    success: true,
-    message: "Diet entries retrieved successfully",
-    data: result.diets,
-    pagination: {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages
-    }
-  });
-});
+    const updatedDiet = await DietServices.updateDietService(dietId, updates);
 
-// Get specific diet entry by ID
-export const getDietByIdController = asyncHandler(async (req: Request, res: Response) => {
-  const { dietId } = req.params;
-  
-  const diet = await DietServices.getDietByIdService(dietId);
-  
-  res.status(200).json({
-    success: true,
-    message: "Diet entry retrieved successfully",
-    data: diet
-  });
-});
+    res.status(200).json({
+      message: "Diet entry updated successfully",
+      data: updatedDiet,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-// Update diet entry
-export const updateDietController = asyncHandler(async (req: Request, res: Response) => {
-  const { dietId } = req.params;
-  const updates = req.body;
-  
-  const updatedDiet = await DietServices.updateDietService(dietId, updates);
-  
-  res.status(200).json({
-    success: true,
-    message: "Diet entry updated successfully",
-    data: updatedDiet
-  });
-});
+/**
+ * @desc    Delete a diet entry
+ * @route   DELETE /api/diet/:dietId
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @params
+ * dietId (string) - ID of the diet entry
+ *
+ * @returns
+ * {
+ *   "message": "Diet entry deleted successfully"
+ * }
+ *
+ * @errors
+ * - 404 if no entry found with given ID
+ * - 500 in case of unexpected error
+ */
+const deleteDietController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { dietId } = req.params;
 
-// Delete diet entry
-export const deleteDietController = asyncHandler(async (req: Request, res: Response) => {
-  const { dietId } = req.params;
-  
-  const deletedDiet = await DietServices.deleteDietService(dietId);
-  
-  res.status(200).json({
-    success: true,
-    message: "Diet entry deleted successfully",
-    data: deletedDiet
-  });
-});
+    await DietServices.deleteDietService(dietId);
 
-// Get all diet entries for a specific user
-export const getUserDietController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { page, limit, sortBy, sortOrder } = req.query;
+    res.status(200).json({
+      message: "Diet entry deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-  const options = {
-    ...(page && { page: parseInt(page as string) }),
-    ...(limit && { limit: parseInt(limit as string) }),
-    ...(sortBy && { sortBy: sortBy as "createdAt" | "updatedAt" | "calories" | "foodName" }),
-    ...(sortOrder && { sortOrder: sortOrder as "asc" | "desc" })
-  };
+/**
+ * @desc    Get nutrition summary for the authenticated user within a date range
+ * @route   GET /api/diet/summary
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @query
+ * startDate (string) - Required - YYYY-MM-DD
+ * endDate (string)   - Required - YYYY-MM-DD
+ *
+ * @returns
+ * {
+ *   "message": "Nutrition summary retrieved successfully",
+ *   "data": {
+ *       "totalCalories": number,
+ *       "totalProtein": number,
+ *       "totalCarbs": number,
+ *       "totalFat": number
+ *   }
+ * }
+ *
+ * @errors
+ * - 400 if required query params are missing
+ * - 500 in case of unexpected error
+ */
+const getUserNutritionSummaryController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const { startDate, endDate } = req.query;
 
-  const result = await DietServices.getUserDietService(userId, options);
-  
-  res.status(200).json({
-    success: true,
-    message: "User diet entries retrieved successfully",
-    data: result.diets,
-    pagination: {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages
-    }
-  });
-});
+    const summary = await DietServices.getUserNutritionSummaryService(
+      userId,
+      startDate as string,
+      endDate as string
+    );
 
-// Get user nutrition summary
-export const getUserNutritionSummaryController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { startDate, endDate } = req.query;
-  
-  const summary = await DietServices.getUserNutritionSummaryService(
-    userId,
-    startDate as string,
-    endDate as string
-  );
-  
-  res.status(200).json({
-    success: true,
-    message: "Nutrition summary retrieved successfully",
-    data: summary
-  });
-});
+    res.status(200).json({
+      message: "Nutrition summary retrieved successfully",
+      data: summary,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-// Get today's diet entries for a user
-export const getUserTodayDietController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { page, limit, sortBy, sortOrder } = req.query;
-
-  const options = {
-    ...(page && { page: parseInt(page as string) }),
-    ...(limit && { limit: parseInt(limit as string) }),
-    ...(sortBy && { sortBy: sortBy as "createdAt" | "updatedAt" | "calories" | "foodName" }),
-    ...(sortOrder && { sortOrder: sortOrder as "asc" | "desc" })
-  };
-
-  const result = await DietServices.getUserTodayDietService(userId, options);
-  
-  res.status(200).json({
-    success: true,
-    message: "Today's diet entries retrieved successfully",
-    data: result.diets,
-    pagination: {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages
-    }
-  });
-});
-
-// Get diet entries for specific date
-export const getUserDietByDateController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, date } = req.params;
-  const { page, limit, sortBy, sortOrder } = req.query;
-
-  const options = {
-    ...(page && { page: parseInt(page as string) }),
-    ...(limit && { limit: parseInt(limit as string) }),
-    ...(sortBy && { sortBy: sortBy as "createdAt" | "updatedAt" | "calories" | "foodName" }),
-    ...(sortOrder && { sortOrder: sortOrder as "asc" | "desc" })
-  };
-
-  const result = await DietServices.getUserDietByDateService(userId, date, options);
-  
-  res.status(200).json({
-    success: true,
-    message: `Diet entries for ${date} retrieved successfully`,
-    data: result.diets,
-    pagination: {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages
-    }
-  });
-});
-
-// Search diet entries
-export const searchDietsController = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { q: searchQuery } = req.query;
-  const { page, limit, sortBy, sortOrder } = req.query;
-
-  const options = {
-    ...(page && { page: parseInt(page as string) }),
-    ...(limit && { limit: parseInt(limit as string) }),
-    ...(sortBy && { sortBy: sortBy as "createdAt" | "updatedAt" | "calories" | "foodName" }),
-    ...(sortOrder && { sortOrder: sortOrder as "asc" | "desc" })
-  };
-
-  const result = await DietServices.searchDietsService(
-    searchQuery as string,
-    userId,
-    options
-  );
-  
-  res.status(200).json({
-    success: true,
-    message: "Diet search completed successfully",
-    data: result.diets,
-    pagination: {
-      page: result.page,
-      limit: result.limit,
-      total: result.total,
-      totalPages: result.totalPages
-    }
-  });
-});
+export {
+  createDietController,
+  getDietsController,
+  updateDietController,
+  deleteDietController,
+  getUserNutritionSummaryController,
+};

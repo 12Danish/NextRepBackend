@@ -1,4 +1,10 @@
-class CommonUtlis {
+
+export interface getScheduleServiceProps {
+  userId: string;
+  offset: number;
+  viewType: "day" | "month" | "year";
+}
+export default class CommonUtlis {
   static calculate_start_and_end_dates(viewType: string, offset: number) {
     const now = new Date();
     let start: Date, end: Date;

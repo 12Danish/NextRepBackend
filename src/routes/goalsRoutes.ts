@@ -34,7 +34,7 @@ router
 
 router
   .route("/goal/update/:id")
-  .put(
+  .patch(
     ValidationMiddleWare.validateToken(),
     GoalValidationMiddleware.validateGoalIdInParams(),
     GoalValidationMiddleware.validateUpdateGoalInput(),

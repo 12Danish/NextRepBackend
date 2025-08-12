@@ -76,7 +76,7 @@ describe("Update Goals Test suite", () => {
     };
 
     const response = await agent
-      .put(`/api/goal/update/${goalId}`)
+      .patch(`/api/goal/update/${goalId}`)
       .send(updates)
       .expect(200);
 
@@ -101,7 +101,7 @@ describe("Update Goals Test suite", () => {
     };
 
     const response = await agent
-      .put(`/api/goal/update/${invalidGoalId}`)
+      .patch(`/api/goal/update/${invalidGoalId}`)
       .send(updates)
       .expect(400);
 
@@ -115,7 +115,7 @@ describe("Update Goals Test suite", () => {
     };
 
     const response = await agent
-      .put(`/api/goal/update/${nonExistentGoalId}`)
+      .patch(`/api/goal/update/${nonExistentGoalId}`)
       .send(updates)
       .expect(404);
 
@@ -130,7 +130,7 @@ describe("Update Goals Test suite", () => {
     };
 
     const response = await agent
-      .put(`/api/goal/update/${goalId}`)
+      .patch(`/api/goal/update/${goalId}`)
       .send(updates)
       .expect(400);
 
@@ -150,7 +150,7 @@ describe("Update Goals Test suite", () => {
     };
 
     const response = await agent
-      .put(`/api/goal/update/${goalId}`)
+      .patch(`/api/goal/update/${goalId}`)
       .send(updates)
       .expect(200);
 
@@ -166,7 +166,7 @@ describe("Update Goals Test suite", () => {
     const updates = {};
 
     const response = await agent
-      .put(`/api/goal/update/${goalId}`)
+      .patch(`/api/goal/update/${goalId}`)
       .send(updates)
       .expect(200);
 

@@ -5,7 +5,7 @@ import { CustomError } from "../utils/customError";
 // This middleware class validates the fields coming in for diet-related operations
 // It ensures they are non-empty and in the correct format
 
-class ValidationMiddleware {
+class DietValidationMiddleware {
     /**
      * Middleware for validating diet creation input.
      * 
@@ -55,7 +55,7 @@ class ValidationMiddleware {
         .optional()
         .isMongoId()
         .withMessage("Invalid goal ID format"),
-      ValidationMiddleware.handleValidationErrors,
+      DietValidationMiddleware.handleValidationErrors,
     ];
   }
 
@@ -108,7 +108,7 @@ class ValidationMiddleware {
         .optional()
         .isMongoId()
         .withMessage("Invalid goal ID format"),
-      ValidationMiddleware.handleValidationErrors,
+      DietValidationMiddleware.handleValidationErrors,
     ];
   }
 
@@ -127,28 +127,11 @@ class ValidationMiddleware {
         .withMessage("Diet ID is required")
         .isMongoId()
         .withMessage("Invalid diet ID format"),
-      ValidationMiddleware.handleValidationErrors,
+      DietValidationMiddleware.handleValidationErrors,
     ];
   }
 
-  /**
-   * Middleware for validating user ID parameter.
-   * 
-   * Validates that:
-   * - `userId` is a valid MongoDB ObjectId format.
-   * 
-   * @returns {Array} An array of middleware functions to use in an Express route.
-   */
-  static validateUserIdParam() {
-    return [
-      param("userId")
-        .notEmpty()
-        .withMessage("User ID is required")
-        .isMongoId()
-        .withMessage("Invalid user ID format"),
-      ValidationMiddleware.handleValidationErrors,
-    ];
-  }
+ 
 
   /**
    * Middleware for validating date parameter in URL (e.g. /user/:userId/date/:date).
@@ -166,126 +149,12 @@ class ValidationMiddleware {
         .isISO8601()
         .toDate()
         .withMessage("Date must be in ISO 8601 format (YYYY-MM-DD)"),
-      ValidationMiddleware.handleValidationErrors,
+      DietValidationMiddleware.handleValidationErrors,
     ];
   }
 
-  /**
-   * Middleware for validating query parameters for diet filtering.
-   * 
-   * Validates that:
-   * - `userId` is valid MongoDB ObjectId if provided.
-   * - `meal` is valid meal type if provided.
-   * - `status` is valid status if provided.
-   * - `startDate` and `endDate` are valid ISO dates if provided.
-   * 
-   * @returns {Array} An array of middleware functions to use in an Express route.
-   */
-  static validateDietFiltersQuery() {
-    return [
-      query("userId")
-        .optional()
-        .isMongoId()
-        .withMessage("Invalid user ID format"),
-      query("meal")
-        .optional()
-        .isIn(["breakfast", "lunch", "dinner", "snack"])
-        .withMessage("Meal must be one of: breakfast, lunch, dinner, snack"),
-      query("status")
-        .optional()
-        .isIn(["taken", "next", "overdue", "skipped"])
-        .withMessage("Status must be one of: taken, next, overdue, skipped"),
-      query("startDate")
-        .optional()
-        .isISO8601()
-        .toDate()
-        .withMessage("Start date must be in ISO 8601 format"),
-      query("endDate")
-        .optional()
-        .isISO8601()
-        .toDate()
-        .withMessage("End date must be in ISO 8601 format"),
-      ValidationMiddleware.handleValidationErrors,
-    ];
-  }
+ 
 
-  /**
-   * Middleware for validating pagination query parameters.
-   * 
-   * Validates that:
-   * - `page` is a positive integer if provided.
-   * - `limit` is a positive integer if provided.
-   * - `sortBy` is valid sort field if provided.
-   * - `sortOrder` is valid sort order if provided.
-   * 
-   * @returns {Array} An array of middleware functions to use in an Express route.
-   */
-  static validatePaginationQuery() {
-    return [
-      query("page")
-        .optional()
-        .isInt({ min: 1 })
-        .withMessage("Page must be a positive integer"),
-      query("limit")
-        .optional()
-        .isInt({ min: 1, max: 100 })
-        .withMessage("Limit must be a positive integer between 1 and 100"),
-      query("sortBy")
-        .optional()
-        .isIn(["createdAt", "updatedAt", "calories", "foodName"])
-        .withMessage("Sort by must be one of: createdAt, updatedAt, calories, foodName"),
-      query("sortOrder")
-        .optional()
-        .isIn(["asc", "desc"])
-        .withMessage("Sort order must be either 'asc' or 'desc'"),
-      ValidationMiddleware.handleValidationErrors,
-    ];
-  }
-
-  /**
-   * Middleware for validating date range for summary endpoint.
-   * 
-   * Validates that:
-   * - `startDate` is in ISO 8601 format if provided.
-   * - `endDate` is in ISO 8601 format if provided.
-   * 
-   * @returns {Array} An array of middleware functions to use in an Express route.
-   */
-  static validateDateRangeQuery() {
-    return [
-      query("startDate")
-        .optional()
-        .isISO8601()
-        .toDate()
-        .withMessage("Start date must be in ISO 8601 format"),
-      query("endDate")
-        .optional()
-        .isISO8601()
-        .toDate()
-        .withMessage("End date must be in ISO 8601 format"),
-      ValidationMiddleware.handleValidationErrors,
-    ];
-  }
-
-  /**
-   * Middleware that validates search query parameters.
-   * 
-   * Validates that:
-   * - `q` (search query) is required and must be a non-empty string.
-   * 
-   * @returns {Array} An array of middleware functions to use in an Express route.
-   */
-  static validateSearchQuery() {
-    return [
-      query("q")
-        .notEmpty()
-        .withMessage("Search query is required")
-        .trim()
-        .isLength({ min: 1, max: 100 })
-        .withMessage("Search query must be between 1 and 100 characters"),
-      ValidationMiddleware.handleValidationErrors,
-    ];
-  }
 
   /**
    * Generic error handler for validation errors.
@@ -313,4 +182,4 @@ class ValidationMiddleware {
   }
 }
 
-export { ValidationMiddleware };
+export { DietValidationMiddleware };
