@@ -11,7 +11,9 @@ import { DietValidationMiddleware } from "../middleware/dietInputHandler";
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();
 
-router.route("/diet/getDiet").get(getDietsController);
+router
+  .route("/diet/getDiet")
+  .get(ValidationMiddleWare.validateToken(), getDietsController);
 
 router
   .route("/diet/createDiet")
@@ -22,13 +24,16 @@ router
   );
 
 router
-  .route("/diet/:dietId")
+  .route("/diet/update/:dietId")
   .put(
     ValidationMiddleWare.validateToken(),
     DietValidationMiddleware.validateDietIdParam(),
     DietValidationMiddleware.validateUpdateDietInput(),
     updateDietController
-  )
+  );
+
+router
+  .route("/diet/delete/:dietId")
   .delete(
     ValidationMiddleWare.validateToken(),
     DietValidationMiddleware.validateDietIdParam(),
@@ -36,7 +41,7 @@ router
   );
 
 router
-  .route("/diet/user/:userId/summary")
-  .get(getUserNutritionSummaryController);
+  .route("/diet/user/summary")
+  .get(ValidationMiddleWare.validateToken(), getUserNutritionSummaryController);
 
 export default router;

@@ -21,11 +21,6 @@ class DietValidationMiddleware {
      */
   static validateCreateDietInput() {
     return [
-      body("userId")
-        .notEmpty()
-        .withMessage("User ID is required")
-        .isMongoId()
-        .withMessage("Invalid user ID format"),
       body("foodName")
         .trim()
         .notEmpty()

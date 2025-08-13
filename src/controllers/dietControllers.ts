@@ -48,7 +48,7 @@ const createDietController = async (
 
     const newDiet = await DietServices.createDietService(dietData);
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Diet entry created successfully",
       data: newDiet,
     });
