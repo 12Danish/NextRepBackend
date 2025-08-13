@@ -41,7 +41,7 @@ const createSleepController = async (
 
     const newSleep = await SleepServices.createSleepService(sleepData);
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Sleep entry created successfully",
       data: newSleep,
     });

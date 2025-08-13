@@ -14,12 +14,15 @@ const router: Router = express.Router();
 
 router
   .route("/sleep/getSleep")
+  .get(ValidationMiddleWare.validateToken(), getSleepController);
+
+router
+  .route("/sleep/create")
   .post(
     ValidationMiddleWare.validateToken(),
     SleepInputHandler.validateCreateSleepInput(),
     createSleepController
-  )
-  .get(SleepInputHandler.validateSleepQueryParams(), getSleepController);
+  );
 
 router
   .route("/sleep/update/:sleepId")

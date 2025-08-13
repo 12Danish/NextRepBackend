@@ -14,7 +14,7 @@ const SleepSchema = new mongoose.Schema(
     userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
     duration: { type: Number, required: true },
     date: { type: Date, required: true },
-    goalId: { type: mongoose.Types.ObjectId, required: true, ref: "Goal" },
+    goalId: { type: mongoose.Types.ObjectId, ref: "Goal" },
   },
   {
     timestamps: true, // ⏱ Automatically adds `createdAt` and `updatedAt`

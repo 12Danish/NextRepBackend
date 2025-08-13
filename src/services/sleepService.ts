@@ -36,16 +36,17 @@ class SleepServices {
       offset
     );
 
-    const workouts = await Sleep.find({
+  
+    const sleepEntries = await Sleep.find({
       userId,
-      date: { $gte: start, $lt: end },
+      date: { $gte: start, $lte: end },
     }).sort({ date: 1 });
 
     return {
       start,
       end,
-      count: workouts.length,
-      workouts,
+      count: sleepEntries.length,
+      sleepEntries,
     };
   }
 
