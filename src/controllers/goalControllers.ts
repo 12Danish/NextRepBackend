@@ -148,8 +148,8 @@ const getGoalsController = async (req: any, res: Response, next: NextFunction) =
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    const goals = await GoalServices.getGoalsService({ category, status, skip, limit, userId });
-    res.status(200).json({ message: "Goals fetched", goals });
+    const goalsData = await GoalServices.getGoalsService({ category, status, skip, limit, userId });
+    res.status(200).json({ message: "Goals fetched", goalsData: goalsData });
   } catch (err) {
     next(err);
   }

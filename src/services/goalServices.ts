@@ -162,11 +162,24 @@ class GoalServices {
     console.log(`category : ${category}`);
     console.log("filter :", JSON.stringify(filter, null, 2));
 
+    // First, get total count for this filter
+    const totalCount = await Goal.countDocuments(filter);
+
+    // Fetch the actual paginated results
     const goals = await Goal.find(filter)
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
-    return goals;
+
+    // Determine prev and next flags
+    const prev = skip > 0;
+    const next = skip + limit < totalCount;
+
+    return {
+      goals: goals,
+      prev: prev,
+      next: next,
+    };
   }
 
   static async getGoalsCountService({

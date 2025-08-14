@@ -23,30 +23,44 @@ class SleepServices {
     return sleep;
   }
 
-  /**
-   * Gets a sleep entry by id
-   */
   static async getSleepService({
     userId,
     viewType,
     offset,
+    particularDate,
   }: getScheduleServiceProps) {
+    // Calculate start & end dates based on params
     const { start, end } = CommonUtlis.calculate_start_and_end_dates(
       viewType,
-      offset
+      offset,
+      particularDate ? new Date(particularDate) : undefined
     );
 
-  
+    // Get sleep entries in the range
     const sleepEntries = await Sleep.find({
       userId,
       date: { $gte: start, $lte: end },
     }).sort({ date: 1 });
+
+    // Check if there’s any sleep data before this range
+    const hasPrev = await Sleep.exists({
+      userId,
+      date: { $lt: start },
+    });
+
+    // Check if there’s any sleep data after this range
+    const hasNext = await Sleep.exists({
+      userId,
+      date: { $gt: end },
+    });
 
     return {
       start,
       end,
       count: sleepEntries.length,
       sleepEntries,
+      prev: Boolean(hasPrev),
+      next: Boolean(hasNext),
     };
   }
 

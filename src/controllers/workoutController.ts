@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 
 import WorkoutServices from "../services/workoutServices";
 
-
 const addWorkoutController = async (
   req: any,
   res: Response,
@@ -26,8 +25,8 @@ const addWorkoutController = async (
     const newWorkout = await WorkoutServices.addWorkoutService({
       exerciseName,
       type,
-      duration : Number(duration),
-      reps : Number(reps),
+      duration: Number(duration),
+      reps: Number(reps),
       targetMuscleGroup,
       goalId,
       workoutDateAndTime,
@@ -92,14 +91,16 @@ const getWorkoutSchedule = async (
     const userId = decoded.id;
     const viewType = req.query.viewType ? req.query.viewType : "month";
     const offset = req.query.offset ? req.query.offset : 0;
+    const particularDate = req.query.particularDate;
 
-    const workouts = await WorkoutServices.getWorkoutScheduleService({
+    const workoutsData = await WorkoutServices.getWorkoutScheduleService({
       userId,
       viewType,
       offset: Number(offset),
+      particularDate,
     });
 
-    res.status(200).json(workouts);
+    res.status(200).json(workoutsData);
   } catch (err) {
     next(err);
   }

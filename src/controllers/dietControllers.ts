@@ -88,11 +88,13 @@ const getDietsController = async (
     const userId = decoded.id;
     const viewType = req.query.viewType ? req.query.viewType : "day";
     const offset = req.query.offset ? Number(req.query.offset) : 0;
+    const particularDate = req.query.particularDate;
 
     const diets = await DietServices.getDietsService({
       userId,
       viewType,
       offset,
+      particularDate,
     });
 
     res.status(200).json({

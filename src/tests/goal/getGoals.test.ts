@@ -72,12 +72,12 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
-    expect(getGoalsRes.body.goals.length).toBeGreaterThan(0);
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
+    expect(getGoalsRes.body.goalsData.goals.length).toBeGreaterThan(0);
 
     // Store first goal ID for later tests
-    firstGoalId = getGoalsRes.body.goals[0]?._id;
-    secondGoalId = getGoalsRes.body.goals[1]?._id;
+    firstGoalId = getGoalsRes.body.goalsData.goals[0]?._id;
+    secondGoalId = getGoalsRes.body.goalsData.goals[1]?._id;
 
     expect(firstGoalId).toBeTruthy();
     expect(secondGoalId).toBeTruthy();
@@ -88,10 +88,10 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
-    expect(getGoalsRes.body.goals.length).toBe(2); // Should return 2 weight goals
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
+    expect(getGoalsRes.body.goalsData.goals.length).toBe(2); // Should return 2 weight goals
     expect(
-      getGoalsRes.body.goals.every((goal: any) => goal.category === "weight")
+      getGoalsRes.body.goalsData.goals.every((goal: any) => goal.category === "weight")
     ).toBe(true);
   });
 
@@ -104,10 +104,10 @@ describe("Get Goals Tests", () => {
     console.log("These are all goals in db ");
     console.log(getAllGoalsRes.body);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
-    expect(getGoalsRes.body.goals.length).toBe(2); // Should return 2 completed goals
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
+    expect(getGoalsRes.body.goalsData.goals.length).toBe(2); // Should return 2 completed goals
     expect(
-      getGoalsRes.body.goals.every((goal: any) => goal.status === "completed")
+      getGoalsRes.body.goalsData.goals.every((goal: any) => goal.status === "completed")
     ).toBe(true);
   });
 
@@ -118,10 +118,10 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
-    expect(getGoalsRes.body.goals.length).toBe(1); // Should return 1 goal (weight + completed)
-    expect(getGoalsRes.body.goals[0].category).toBe("weight");
-    expect(getGoalsRes.body.goals[0].status).toBe("completed");
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
+    expect(getGoalsRes.body.goalsData.goals.length).toBe(1); // Should return 1 goal (weight + completed)
+    expect(getGoalsRes.body.goalsData.goals[0].category).toBe("weight");
+    expect(getGoalsRes.body.goalsData.goals[0].status).toBe("completed");
   });
 
   it("Should handle pagination correctly", async () => {
@@ -129,8 +129,8 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
-    expect(getGoalsRes.body.goals.length).toBe(2); // Should return 2 goals per page
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
+    expect(getGoalsRes.body.goalsData.goals.length).toBe(2); // Should return 2 goals per page
   });
 
   it("Should return second page of goals", async () => {
@@ -138,8 +138,8 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
-    expect(getGoalsRes.body.goals.length).toBeLessThanOrEqual(2); // Last page might have fewer items
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
+    expect(getGoalsRes.body.goalsData.goals.length).toBeLessThanOrEqual(2); // Last page might have fewer items
   });
 
   it("Should handle invalid page number gracefully", async () => {
@@ -147,7 +147,7 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
   });
 
   it("Should handle invalid limit gracefully", async () => {
@@ -155,7 +155,7 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
   });
 
   it("Should return empty array when no goals match the filter", async () => {
@@ -165,8 +165,8 @@ describe("Get Goals Tests", () => {
 
     expect(getGoalsRes.status).toBe(200);
     expect(getGoalsRes.body.message).toBe("Goals fetched");
-    expect(Array.isArray(getGoalsRes.body.goals)).toBe(true);
-    expect(getGoalsRes.body.goals.length).toBe(0);
+    expect(Array.isArray(getGoalsRes.body.goalsData.goals)).toBe(true);
+    expect(getGoalsRes.body.goalsData.goals.length).toBe(0);
   });
 
   it("should get the count of all goals", async () => {

@@ -58,28 +58,49 @@ class WorkoutServices {
     return true;
   }
 
-  static async getWorkoutScheduleService({
+static async getWorkoutScheduleService({
+  userId,
+  viewType,
+  offset,
+  particularDate
+}: getScheduleServiceProps) {
+
+
+  // Calculate the range based on viewType, offset, and baseDate
+const { start, end } = CommonUtlis.calculate_start_and_end_dates(
+  viewType,
+  offset,
+  particularDate ? new Date(particularDate) : undefined
+);
+
+  // Get workouts in the given range
+  const workouts = await Workout.find({
     userId,
-    viewType,
-    offset,
-  }: getScheduleServiceProps) {
-    const { start, end } = CommonUtlis.calculate_start_and_end_dates(
-      viewType,
-      offset
-    );
+    workoutDateAndTime: { $gte: start, $lte: end },
+  }).sort({ workoutDateAndTime: 1 });
 
-    const workouts = await Workout.find({
-      userId,
-      workoutDateAndTime: { $gte: start, $lte: end },
-    }).sort({ workoutDateAndTime: 1 });
+  // Check for prev (any workout before start)
+  const hasPrev = await Workout.exists({
+    userId,
+    workoutDateAndTime: { $lt: start }
+  });
 
-    return {
-      start,
-      end,
-      count: workouts.length,
-      workouts,
-    };
-  }
+  // Check for next (any workout after end)
+  const hasNext = await Workout.exists({
+    userId,
+    workoutDateAndTime: { $gt: end }
+  });
+
+  return {
+    start,
+    end,
+    count: workouts.length,
+    workouts,
+    prev: Boolean(hasPrev),
+    next: Boolean(hasNext),
+  };
+}
+
 
   static async updateWorkoutService({
     userId,

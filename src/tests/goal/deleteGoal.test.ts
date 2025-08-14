@@ -29,7 +29,7 @@ describe("Delete Goals Tests", () => {
     console.log(getGoalsRes.body);
 
     // Access the goals array and extract _id
-    const goals = getGoalsRes.body.goals;
+    const goals = getGoalsRes.body.goalsData.goals;
     console.log(goals);
     firstGoalId = goals[0]?._id;
   });

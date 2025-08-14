@@ -2,10 +2,15 @@ export interface getScheduleServiceProps {
   userId: string;
   offset: number;
   viewType: "day" | "month" | "year";
+  particularDate: Date;
 }
 export default class CommonUtlis {
-  static calculate_start_and_end_dates(viewType: string, offset: number) {
-    const now = new Date();
+  static calculate_start_and_end_dates(
+    viewType: string,
+    offset: number,
+    baseDate?: Date // optional parameter
+  ) {
+    const now = baseDate ? new Date(baseDate) : new Date();
     let start: Date, end: Date;
 
     if (viewType === "day") {

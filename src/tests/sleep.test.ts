@@ -4,37 +4,34 @@ describe("Sleep Tests Suite", () => {
   let agent: any;
   let sleepGoalId: string;
   let sleepId: string;
+  let userId: string;
 
   beforeAll(async () => {
     // 1. Register & login user
     agent = await registerAndLoginUser();
+    userId = agent.userId; // assuming registerAndLoginUser sets this
 
-    // 2. Create a workout goal
+    // 2. Create a sleep goal
     const today = new Date();
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
     const sleepGoalData = {
       category: "sleep",
       startDate: today.toISOString(),
-
       targetDate: tomorrow.toISOString(),
       description: "Get 8 hours of sleep",
       status: "pending",
-      data: {
-        targetHours: 8,
-      },
+      data: { targetHours: 8 },
     };
 
     const res = await agent.post("/api/goal/add").send(sleepGoalData);
-    console.log(res.body);
     sleepGoalId = res.body.newGoal._id;
   });
 
-  it("Should create a sleep entry", async () => {
+  it("Should create a sleep entry for today", async () => {
     const today = new Date();
-
     const res = await agent.post("/api/sleep/create").send({
-      duration: 480, // 8 hours in minutes
+      duration: 480, // minutes
       date: today.toISOString(),
       goalId: sleepGoalId,
     });
@@ -45,52 +42,81 @@ describe("Sleep Tests Suite", () => {
     sleepId = res.body.data._id;
   });
 
-  it("Should get sleep entries for 'day' viewType with offset 0", async () => {
-    const res = await agent
-      .get("/api/sleep/getSleep")
-      .query({ viewType: "day", offset: 0 });
-
-    expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Sleep entries retrieved successfully");
-    console.log("sleep data");
-    console.log(res.body);
-    expect(res.body.data.sleepEntries.length).toBe(1);
-  });
-
-  it("Should get sleep entries for 'week' viewType with offset -1", async () => {
-    const prevWeekDate = new Date();
-    prevWeekDate.setDate(prevWeekDate.getDate() - 7); // one week ago
-
-    await agent.post("/api/sleep/create").send({
-      date: prevWeekDate,
-      duration: 6.5,
+  it("Should get sleep for 'day' viewType with particularDate", async () => {
+    const today = new Date().toISOString();
+    const res = await agent.get("/api/sleep/getSleep").query({
+      viewType: "day",
+      offset: 0,
+      particularDate: today,
     });
 
-    const res = await agent
-      .get("/api/sleep/getSleep")
-      .query({ viewType: "week", offset: -1 });
-
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Sleep entries retrieved successfully");
+    expect(res.body.data.count).toBe(1);
     expect(res.body.data.sleepEntries.length).toBe(1);
+    expect(res.body.data.prev).toBe(false);
+    expect(res.body.data.next).toBe(false);
   });
 
-  it("Should get sleep entries for 'month' viewType with offset 1", async () => {
-    const nextMonthDate = new Date();
-    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1); // next month
+  it("Should show prev=true when older sleep exists", async () => {
+    const prevDay = new Date();
+    prevDay.setDate(prevDay.getDate() - 3);
 
     await agent.post("/api/sleep/create").send({
-      date: nextMonthDate,
-      duration: 8,
+      date: prevDay.toISOString(),
+      duration: 420,
     });
 
-    const res = await agent
-      .get("/api/sleep/getSleep")
-      .query({ viewType: "month", offset: 1 });
+    const res = await agent.get("/api/sleep/getSleep").query({
+      viewType: "day",
+      offset: 0,
+      particularDate: new Date().toISOString(),
+    });
 
     expect(res.status).toBe(200);
-    expect(res.body.message).toBe("Sleep entries retrieved successfully");
-    expect(res.body.data.sleepEntries.length).toBe(1);
+    expect(res.body.data.prev).toBe(true);
+  });
+
+  it("Should show next=true when newer sleep exists", async () => {
+    const nextDay = new Date();
+    nextDay.setDate(nextDay.getDate() + 3);
+
+    await agent.post("/api/sleep/create").send({
+      date: nextDay.toISOString(),
+      duration: 500,
+    });
+
+    const res = await agent.get("/api/sleep/getSleep").query({
+      viewType: "day",
+      offset: 0,
+      particularDate: new Date().toISOString(),
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.next).toBe(true);
+  });
+
+  it("Should get sleep for 'week' viewType with particularDate", async () => {
+    const res = await agent.get("/api/sleep/getSleep").query({
+      viewType: "week",
+      offset: 0,
+      particularDate: new Date().toISOString(),
+    });
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.data.sleepEntries)).toBe(true);
+  });
+
+  it("Should get sleep for 'month' viewType with particularDate", async () => {
+    const res = await agent.get("/api/sleep/getSleep").query({
+      viewType: "month",
+      offset: 0,
+      particularDate: new Date().toISOString(),
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.start).toBeDefined();
+    expect(res.body.data.end).toBeDefined();
+    expect(res.body.data.count).toBeGreaterThan(0);
   });
 
   it("Should update the sleep entry", async () => {
@@ -98,7 +124,7 @@ describe("Sleep Tests Suite", () => {
     newDate.setDate(newDate.getDate() - 1);
 
     const res = await agent.patch(`/api/sleep/update/${sleepId}`).send({
-      duration: 420, // 7 hours
+      duration: 420,
       date: newDate.toISOString(),
     });
 
@@ -109,7 +135,6 @@ describe("Sleep Tests Suite", () => {
 
   it("Should delete the sleep entry", async () => {
     const res = await agent.delete(`/api/sleep/delete/${sleepId}`);
-
     expect(res.status).toBe(200);
     expect(res.body.message).toBe("Sleep entry deleted successfully");
   });

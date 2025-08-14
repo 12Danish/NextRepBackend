@@ -208,7 +208,7 @@ describe("Update Goals Test suite", () => {
     const getUpdatedGoal = await agent.get(`/api/goal/${overdueGoalId}`);
     const goalsRes = await agent.get(`/api/goal/getGoals`);
 
-    const goals = goalsRes.body.goals;
+    const goals = goalsRes.body.goalsData.goals;
 
     for (const goal of goals) {
       if (goal._id == overdueGoalId) {
