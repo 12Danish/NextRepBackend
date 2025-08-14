@@ -1,32 +1,95 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-const getSleepGoalProgressController = async (req: any, res: Response, next: NextFunction) => {
-  // your logic here
+const getSleepGoalProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getWorkoutGraphProgressController = async (req: any, res: Response, next: NextFunction) => {
-  // your logic here
+const getWorkoutGraphProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getDietGoalProgressController = async (req: any, res: Response, next: NextFunction) => {
-  // your logic here
+const getDietGoalProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getDietGraphProgressController = async (req: any, res: Response, next: NextFunction) => {
-  // your logic here
+const getDietGraphProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getWeightGoalProgressController = async (req: any, res: Response, next: NextFunction) => {
-  // your logic here
+const getWeightGoalProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getWeightGraphProgressController = async (req: any, res: Response, next: NextFunction) => {
-  // your logic here
+const getWeightGraphProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getWorkoutGoalProgressController = async (req: any, res: Response, next: NextFunction) => {
-  // your logic here
+const getWorkoutGoalProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+  } catch (err) {
+    next(err);
+  }
 };
 
 export {
