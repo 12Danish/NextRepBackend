@@ -39,7 +39,7 @@ class SleepServices {
     // Get sleep entries in the range
     const sleepEntries = await Sleep.find({
       userId,
-      date: { $gte: start, $lte: end },
+      date: { $gte: start, $lt: end },
     }).sort({ date: 1 });
 
     // Check if there’s any sleep data before this range

@@ -76,7 +76,7 @@ const { start, end } = CommonUtlis.calculate_start_and_end_dates(
   // Get workouts in the given range
   const workouts = await Workout.find({
     userId,
-    workoutDateAndTime: { $gte: start, $lte: end },
+    workoutDateAndTime: { $gte: start, $lt: end },
   }).sort({ workoutDateAndTime: 1 });
 
   // Check for prev (any workout before start)

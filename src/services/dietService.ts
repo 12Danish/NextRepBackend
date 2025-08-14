@@ -84,7 +84,7 @@ class DietServices {
     // Get diets in the given range
     const diets = await Diet.find({
       userId: new mongoose.Types.ObjectId(userId),
-      mealDateAndTime: { $gte: start, $lte: end },
+      mealDateAndTime: { $gte: start, $lt: end },
     }).sort({ mealDateAndTime: 1 });
 
     // Check if there are previous diet entries before this range
@@ -161,7 +161,7 @@ class DietServices {
     if (startDate || endDate) {
       query.mealDateAndTime = {};
       if (startDate) query.mealDateAndTime.$gte = new Date(startDate);
-      if (endDate) query.mealDateAndTime.$lte = new Date(endDate);
+      if (endDate) query.mealDateAndTime.$lt = new Date(endDate);
     }
 
     const result = await Diet.aggregate([

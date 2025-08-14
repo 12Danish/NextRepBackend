@@ -4,22 +4,37 @@ import {
   addTrackerController,
   deleteTrackerController,
   updateTrackerController,
-  getScheduleController,
+  getTrackedController,
 } from "../controllers/trackerControllers";
+
+import TrackerValidationMiddleware from "../middleware/trackerMiddleware";
 const router: Router = express.Router();
 
 router
-  .route("/tracker/getSchedules")
-  .get(ValidationMiddleWare.validateToken(), getScheduleController);
+  .route("/tracker/getTracked")
+  .get(ValidationMiddleWare.validateToken(), getTrackedController);
 
 router
   .route("/tracker/updateTracking/:trackerId")
-  .put(ValidationMiddleWare.validateToken(), updateTrackerController);
+  .put(
+    ValidationMiddleWare.validateToken(),
+    TrackerValidationMiddleware.validateTrackerIdOrReferenceIdInParam(),
+    updateTrackerController
+  );
 
 router
-  .route("/tracker/addTracking/:referencedId")
-  .post(ValidationMiddleWare.validateToken(), addTrackerController);
+  .route("/tracker/addTracking/:referenceId")
+  .post(
+    ValidationMiddleWare.validateToken(),
+    TrackerValidationMiddleware.validateTrackerIdOrReferenceIdInParam(),
+    TrackerValidationMiddleware.validateAddTrackerInput(),
+    addTrackerController
+  );
 
 router
   .route("/tracker/deleteTracking/:trackerId")
-  .delete(ValidationMiddleWare.validateToken(), deleteTrackerController);
+  .delete(
+    ValidationMiddleWare.validateToken(),
+    TrackerValidationMiddleware.validateTrackerIdOrReferenceIdInParam(),
+    deleteTrackerController
+  );

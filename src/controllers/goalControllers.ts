@@ -29,18 +29,23 @@ import GoalServices from "../services/goalServices";
  * @errors
  * - 500 in case of unexpected error
  */
-const addGoalController = async (req: any, res: Response, next: NextFunction) => {
+const addGoalController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
-    const { category, startDate, description, targetDate, status, data } = req.body;
+    const { category, startDate, description, targetDate, status, data } =
+      req.body;
     const endDate = status === "completed" ? new Date(targetDate) : null;
 
     const newGoal = await GoalServices.addGoalService({
       category,
       startDate,
       description,
-      targetDate,
+      targetDate: new Date(targetDate),
       endDate,
       status,
       userId,
@@ -71,7 +76,11 @@ const addGoalController = async (req: any, res: Response, next: NextFunction) =>
  * @errors
  * - 500 in case of unexpected error
  */
-const deleteGoalController = async (req: any, res: Response, next: NextFunction) => {
+const deleteGoalController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const goalId: string = req.params.id;
     await GoalServices.deleteGoalService(goalId);
@@ -106,13 +115,22 @@ const deleteGoalController = async (req: any, res: Response, next: NextFunction)
  * @errors
  * - 500 in case of unexpected error
  */
-const updateGoalDetailsController = async (req: any, res: Response, next: NextFunction) => {
+const updateGoalDetailsController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const goalId: string = req.params.id;
     const updates = req.body;
-    const updatedGoal = await GoalServices.updateGoalDetailsService({ goalId, updates });
+    const updatedGoal = await GoalServices.updateGoalDetailsService({
+      goalId,
+      updates,
+    });
 
-    res.status(200).json({ message: "Goal updated successfully.", data: updatedGoal });
+    res
+      .status(200)
+      .json({ message: "Goal updated successfully.", data: updatedGoal });
   } catch (err) {
     next(err);
   }
@@ -138,7 +156,11 @@ const updateGoalDetailsController = async (req: any, res: Response, next: NextFu
  *   "goals": [ ... ]
  * }
  */
-const getGoalsController = async (req: any, res: Response, next: NextFunction) => {
+const getGoalsController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 4;
@@ -148,7 +170,13 @@ const getGoalsController = async (req: any, res: Response, next: NextFunction) =
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    const goalsData = await GoalServices.getGoalsService({ category, status, skip, limit, userId });
+    const goalsData = await GoalServices.getGoalsService({
+      category,
+      status,
+      skip,
+      limit,
+      userId,
+    });
     res.status(200).json({ message: "Goals fetched", goalsData: goalsData });
   } catch (err) {
     next(err);
@@ -173,14 +201,22 @@ const getGoalsController = async (req: any, res: Response, next: NextFunction) =
  *   "goalsCount": number
  * }
  */
-const getGoalsCountController = async (req: any, res: Response, next: NextFunction) => {
+const getGoalsCountController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const category = req.query.category as string;
     const status = req.query.status as string;
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    const goalsCount = await GoalServices.getGoalsCountService({ category, status, userId });
+    const goalsCount = await GoalServices.getGoalsCountService({
+      category,
+      status,
+      userId,
+    });
     res.status(200).json({ message: "Goals fetched", goalsCount });
   } catch (err) {
     next(err);
@@ -201,7 +237,11 @@ const getGoalsCountController = async (req: any, res: Response, next: NextFuncti
  *   "progress": { ... }
  * }
  */
-const getOverallProgressController = async (req: any, res: Response, next: NextFunction) => {
+const getOverallProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
@@ -227,13 +267,22 @@ const getOverallProgressController = async (req: any, res: Response, next: NextF
  *   "goals": [ ... ]
  * }
  */
-const getUpcomingGoalsController = async (req: any, res: Response, next: NextFunction) => {
+const getUpcomingGoalsController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
     const upcomingGoals = await GoalServices.getUpcomingGoalsService(userId);
 
-    res.status(200).json({ message: "Successfully fetched upcoming goals", goals: upcomingGoals });
+    res
+      .status(200)
+      .json({
+        message: "Successfully fetched upcoming goals",
+        goals: upcomingGoals,
+      });
   } catch (err) {
     next(err);
   }
@@ -259,11 +308,18 @@ const getUpcomingGoalsController = async (req: any, res: Response, next: NextFun
  *   "goal": { ... }
  * }
  */
-const changeGoalCompletionStatus = async (req: any, res: Response, next: NextFunction) => {
+const changeGoalCompletionStatus = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const goalId: string = req.params.id;
     const currentStatus = req.query.currentStatus;
-    const updatedGoal = await GoalServices.changeGoalStatusService({ goalId, currentStatus });
+    const updatedGoal = await GoalServices.changeGoalStatusService({
+      goalId,
+      currentStatus,
+    });
 
     res.status(200).json({ message: "Goal status updated", goal: updatedGoal });
   } catch (err) {
@@ -284,7 +340,11 @@ const changeGoalCompletionStatus = async (req: any, res: Response, next: NextFun
  *   "message": "Goal statuses successfully updated"
  * }
  */
-const UpdateGoalsOverdueStatusController = async (req: any, res: Response, next: NextFunction) => {
+const UpdateGoalsOverdueStatusController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;

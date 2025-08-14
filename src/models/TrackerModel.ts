@@ -4,17 +4,18 @@ export interface ITrackerBase extends Document {
   userId: mongoose.Types.ObjectId;
   type: "sleep" | "diet" | "workout";
   referenceId: mongoose.Types.ObjectId; // Will point to Sleep/Diet/Workout
+  date: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
 interface IWorkoutTracker extends ITrackerBase {
-  completedReps?: Number;
-  completedTime?: Number;
+  completedReps?: number;
+  completedTime?: number;
 }
 
 interface IDietTracker extends ITrackerBase {
-  weightConsumed: Number;
+  weightConsumed: number;
 }
 
 // Union type for the full Tracker
@@ -25,7 +26,7 @@ const TrackerSchema = new Schema<ITracker>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     type: { type: String, enum: ["sleep", "diet", "workout"], required: true },
     referenceId: { type: Schema.Types.ObjectId, required: true },
-
+    date: { type: Date, required: true },
     // Workout-specific
     completedReps: { type: Number, required: false },
     completedTime: { type: Number, required: false },
@@ -35,5 +36,6 @@ const TrackerSchema = new Schema<ITracker>(
   },
   { timestamps: true }
 );
+
 
 export const Tracker = mongoose.model<ITracker>("Tracker", TrackerSchema);

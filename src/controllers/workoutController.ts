@@ -29,7 +29,7 @@ const addWorkoutController = async (
       reps: Number(reps),
       targetMuscleGroup,
       goalId,
-      workoutDateAndTime,
+      workoutDateAndTime: new Date(workoutDateAndTime),
       userId,
     });
 
