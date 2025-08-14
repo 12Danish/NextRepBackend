@@ -6,7 +6,8 @@ import sleepRoutes from "./routes/sleepRoutes";
 import dietRoutes from "./routes/dietRoutes";
 import goalsRoutes from "./routes/goalsRoutes";
 import cookieParser from "cookie-parser";
-import workoutRoutes from "./routes/workoutRoutes"
+import workoutRoutes from "./routes/workoutRoutes";
+import trackerRoutes from "./routes/trackerRoutes";
 const app = express();
 
 app.use(express.json());
@@ -17,7 +18,8 @@ app.use("/api", authRoutes);
 app.use("/api", goalsRoutes);
 app.use("/api", sleepRoutes);
 app.use("/api", dietRoutes);
-app.use("/api", workoutRoutes )
+app.use("/api", workoutRoutes);
+app.use("/api", trackerRoutes);
 app.use(errorHandler);
 
 config.connectDB().then(() => {

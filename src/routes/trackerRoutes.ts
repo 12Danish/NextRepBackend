@@ -38,3 +38,5 @@ router
     TrackerValidationMiddleware.validateTrackerIdOrReferenceIdInParam(),
     deleteTrackerController
   );
+
+export default router;
