@@ -1,7 +1,43 @@
 import express, { Router } from "express";
+import {
+  getDietGoalProgressController,
+  getDietGraphProgressController,
+  getSleepGoalProgressController,
+  getWeightGraphProgressController,
+  getWorkoutGoalProgressController,
+  getWeightGoalProgressController,
+  getWorkoutGraphProgressController,
+} from "../controllers/progressController";
 
+import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();
 
-router.route("/progress/getGoalProgress");
+router
+  .route("/progress/SleepGoalProgress")
+  .get(ValidationMiddleWare.validateToken(), getSleepGoalProgressController);
 
-router.route("/progress/getScheduleAndTrackerProgress");
+router
+  .route("/progress/DietGoalProgress")
+  .get(ValidationMiddleWare.validateToken(), getDietGoalProgressController);
+
+router
+  .route("/progress/WorkoutGraphProgress")
+  .get(ValidationMiddleWare.validateToken(), getWorkoutGraphProgressController);
+
+router
+  .route("/progress/DietGraphProgress")
+  .get(ValidationMiddleWare.validateToken(), getDietGraphProgressController);
+
+router
+  .route("/progress/WeightGoalProgress")
+  .get(ValidationMiddleWare.validateToken(), getWeightGoalProgressController);
+
+router
+  .route("/progress/WeightGraphProgress")
+  .get(ValidationMiddleWare.validateToken(), getWeightGraphProgressController);
+
+router
+  .route("/progress/WorkoutGoalProgress")
+  .get(ValidationMiddleWare.validateToken(), getWorkoutGoalProgressController);
+
+export default router;

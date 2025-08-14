@@ -4,7 +4,7 @@ import {
   customLoginController,
   registerUserController,
   logoutController,
-} from "../controllers/userControllers";
+} from "../controllers/authControllers";
 
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();

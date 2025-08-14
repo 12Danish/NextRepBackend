@@ -8,6 +8,9 @@ import goalsRoutes from "./routes/goalsRoutes";
 import cookieParser from "cookie-parser";
 import workoutRoutes from "./routes/workoutRoutes";
 import trackerRoutes from "./routes/trackerRoutes";
+import userDetailsRoutes from "./routes/userDetailsRoutes";
+
+import progressRoutes from "./routes/progressRoutes";
 const app = express();
 
 app.use(express.json());
@@ -20,6 +23,8 @@ app.use("/api", sleepRoutes);
 app.use("/api", dietRoutes);
 app.use("/api", workoutRoutes);
 app.use("/api", trackerRoutes);
+app.use("/api", userDetailsRoutes);
+app.use("/api", progressRoutes);
 app.use(errorHandler);
 
 config.connectDB().then(() => {

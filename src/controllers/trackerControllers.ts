@@ -3,7 +3,7 @@ import TrackerServices from "../services/trackerServices";
 import jwt from "jsonwebtoken";
 
 const getTrackedController = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
@@ -27,7 +27,7 @@ const getTrackedController = async (
 };
 
 const addTrackerController = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
@@ -57,7 +57,7 @@ const addTrackerController = async (
 };
 
 const updateTrackerController = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
@@ -80,7 +80,7 @@ const updateTrackerController = async (
 };
 
 const deleteTrackerController = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {

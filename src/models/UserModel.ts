@@ -16,6 +16,7 @@ export interface IUser extends Document {
   weight: number;
 }
 
+
 const UserSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true },
