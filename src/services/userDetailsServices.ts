@@ -1,4 +1,6 @@
 import { User } from "../models/UserModel";
+import { CustomError } from "../utils/customError";
+
 interface UpdateUserDetailsServiceProps {
   phone_num: string;
   dob: Date;
@@ -8,6 +10,16 @@ interface UpdateUserDetailsServiceProps {
 }
 
 class UserDetailsServices {
+  static async getUserDetailsService(userId: string) {
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      throw new CustomError("User not found", 404);
+    }
+
+    return user;
+  }
+
   static async updateUserDetailsService({
     userId,
     updates,
@@ -19,6 +31,10 @@ class UserDetailsServices {
       new: true,
       runValidators: true,
     });
+
+    if (!updatedUser) {
+      throw new CustomError("User not found", 404);
+    }
 
     return updatedUser;
   }
