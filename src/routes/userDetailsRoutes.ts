@@ -1,7 +1,11 @@
 import express, { Router } from "express";
-import { updateUserDetailsController } from "../controllers/userDetailsControllers";
+import { updateUserDetailsController, getUserDetailsController } from "../controllers/userDetailsControllers";
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();
+
+router
+  .route("/userDetails")
+  .get(ValidationMiddleWare.validateToken(), getUserDetailsController);
 
 router
   .route("/userDetails/update")
