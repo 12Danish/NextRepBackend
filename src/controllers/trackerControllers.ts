@@ -47,7 +47,7 @@ const addTrackerController = async (
       workoutOrDietData,
     });
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Tracker successfully added",
       newTracker,
     });
