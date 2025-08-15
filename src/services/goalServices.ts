@@ -309,6 +309,46 @@ class GoalServices {
 
     return result;
   }
+
+  static async updateCurrentWeightService({
+    goalId,
+    newWeight,
+  }: {
+    goalId: string;
+    newWeight: number;
+  }) {
+    if (!mongoose.Types.ObjectId.isValid(goalId)) {
+      throw new CustomError("Invalid goal ID", 400);
+    }
+
+    const weightGoal = await Goal.findById(goalId);
+
+    if (!weightGoal) {
+      throw new CustomError("No goal with this id found", 404);
+    }
+
+    if (weightGoal.category !== "weight") {
+      throw new CustomError("Only weight goals allowed for this function", 400);
+    }
+
+    // Ensure previousWeights exists
+    if (!Array.isArray(weightGoal.data.previousWeights)) {
+      weightGoal.data.previousWeights = [];
+    }
+
+    // Push current weight into previous weights with timestamp
+    weightGoal.data.previousWeights.push({
+      weight: weightGoal.data.currentWeight,
+      date: new Date(),
+    });
+
+    // Update current weight
+    weightGoal.data.currentWeight = newWeight;
+
+    await weightGoal.save();
+
+    return weightGoal;
+  }
 }
 
 export default GoalServices;

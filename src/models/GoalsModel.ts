@@ -72,7 +72,7 @@ export const GoalSchema = new mongoose.Schema(
     userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
     startDate: { type: Date, required: true },
     description: { type: String },
-    endDate: { type: Date || null, default: "null" },
+    endDate: { type: Date, default: null },
     targetDate: { type: Date, required: true },
     status: {
       type: String,

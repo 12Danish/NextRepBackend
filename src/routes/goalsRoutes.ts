@@ -9,6 +9,7 @@ import {
   updateGoalDetailsController,
   UpdateGoalsOverdueStatusController,
   changeGoalCompletionStatus,
+  updateCurrentWeightController,
 } from "../controllers/goalControllers";
 
 import { GoalValidationMiddleware } from "../middleware/goalInputHandler";
@@ -71,4 +72,7 @@ router.route("/goal/updateGoalsOverdueStatus").get(
   UpdateGoalsOverdueStatusController
 );
 
+router
+  .route("/goal/updateWeight/:id")
+  .put(ValidationMiddleWare.validateToken(), updateCurrentWeightController);
 export default router;

@@ -227,4 +227,101 @@ describe("Update Goals Test suite", () => {
     expect(res.status).toBe(200);
     expect(res.body.goal.status).toBe("completed");
   });
+
+  describe("Update Current Weight Route", () => {
+    let agent: any;
+    let weightGoalId: string;
+    let nonWeightGoalId: string;
+
+    beforeAll(async () => {
+      agent = await registerAndLoginUser();
+
+      const today = new Date();
+
+      // Add a weight goal
+      const weightGoal = {
+        category: "weight",
+        startDate: today.toISOString(),
+        targetDate: new Date(
+          today.getTime() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+        description: "Test Weight Goal",
+        status: "pending",
+        data: {
+          goalType: "loss",
+          targetWeight: 70,
+          currentWeight: 75,
+          previousWeights: [{ weight: 75, date: today }],
+        },
+      };
+
+      // Add a non-weight goal
+      const workoutGoal = {
+        category: "workout",
+        startDate: today.toISOString(),
+        targetDate: new Date(
+          today.getTime() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+        description: "Workout Goal",
+        status: "pending",
+        data: {
+          exerciseName: "Running",
+          targetMinutes: 30,
+        },
+      };
+
+      const weightRes = await agent.post("/api/goal/add").send(weightGoal);
+      weightGoalId = weightRes.body.newGoal._id;
+
+      const workoutRes = await agent.post("/api/goal/add").send(workoutGoal);
+      nonWeightGoalId = workoutRes.body.newGoal._id;
+    });
+
+    it.only("should update currentWeight and store previous weight with date", async () => {
+      const response = await agent
+        .put(`/api/goal/updateWeight/${weightGoalId}`)
+        .send({ newWeight: 74 });
+
+      console.log("this is the new weight update function ");
+      console.log(response.body);
+
+      expect(response.body.message).toBe("Goal Updated");
+      expect(response.body.updatedWeightGoal.data.currentWeight).toBe(74);
+
+      // Check if previousWeights contains the old weight (75)
+      const prevWeights = response.body.updatedWeightGoal.data.previousWeights;
+      expect(prevWeights.some((pw: any) => pw.weight === 75)).toBe(true);
+    });
+
+    it("should return 400 for invalid goal ID", async () => {
+      const response = await agent
+        .put(`/api/goal/updateWeight/invalid-id`)
+        .send({ newWeight: 74 })
+        .expect(400);
+
+      expect(response.body.message).toBe("Invalid goal ID");
+    });
+
+    it("should return 404 for non-existent goal ID", async () => {
+      const fakeId = new mongoose.Types.ObjectId().toString();
+
+      const response = await agent
+        .put(`/api/goal/updateWeight/${fakeId}`)
+        .send({ newWeight: 74 })
+        .expect(404);
+
+      expect(response.body.message).toBe("No goal with this id found");
+    });
+
+    it("should return 400 if goal is not a weight goal", async () => {
+      const response = await agent
+        .put(`/api/goal/updateWeight/${nonWeightGoalId}`)
+        .send({ newWeight: 80 })
+        .expect(400);
+
+      expect(response.body.message).toBe(
+        "Only weight goals allowed for this function"
+      );
+    });
+  });
 });

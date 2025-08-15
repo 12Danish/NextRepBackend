@@ -277,12 +277,10 @@ const getUpcomingGoalsController = async (
     const userId = decoded.id;
     const upcomingGoals = await GoalServices.getUpcomingGoalsService(userId);
 
-    res
-      .status(200)
-      .json({
-        message: "Successfully fetched upcoming goals",
-        goals: upcomingGoals,
-      });
+    res.status(200).json({
+      message: "Successfully fetched upcoming goals",
+      goals: upcomingGoals,
+    });
   } catch (err) {
     next(err);
   }
@@ -358,11 +356,33 @@ const UpdateGoalsOverdueStatusController = async (
   }
 };
 
+const updateCurrentWeightController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const goalId: string = req.params.id;
+    const newWeight = Number(req.body.newWeight);
+
+    const updatedWeightGoal = await GoalServices.updateCurrentWeightService({
+      goalId,
+      newWeight,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Goal Updated", updatedWeightGoal: updatedWeightGoal });
+  } catch (err) {
+    next(err);
+  }
+};
 export {
   addGoalController,
   deleteGoalController,
   updateGoalDetailsController,
   getGoalsController,
+  updateCurrentWeightController,
   getGoalsCountController,
   getUpcomingGoalsController,
   getOverallProgressController,
