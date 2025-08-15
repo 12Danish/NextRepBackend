@@ -22,6 +22,26 @@ const getUserDetailsController = async (
   }
 };
 
+const getUserComprehensiveInfoController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+
+    const userInfo = await UserDetailsServices.getUserComprehensiveInfoService(userId);
+
+    res.status(200).json({
+      message: "User comprehensive information fetched successfully",
+      ...userInfo,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const updateUserDetailsController = async (
   req: any,
   res: Response,
@@ -47,4 +67,4 @@ const updateUserDetailsController = async (
   }
 };
 
-export { updateUserDetailsController, getUserDetailsController };
+export { updateUserDetailsController, getUserDetailsController, getUserComprehensiveInfoController };
