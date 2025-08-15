@@ -11,7 +11,17 @@ import trackerRoutes from "./routes/trackerRoutes";
 import userDetailsRoutes from "./routes/userDetailsRoutes";
 import locationRoutes from "./routes/locationRoutes";
 import progressRoutes from "./routes/progressRoutes";
+import cors from "cors";
+
 const app = express();
+
+// CORS configuration
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow both frontend and backend origins
+  credentials: true, // Allow cookies and credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // Allow necessary headers
+}));
 
 app.use(express.json());
 app.use(cookieParser());
