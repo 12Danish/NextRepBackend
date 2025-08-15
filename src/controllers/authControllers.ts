@@ -43,6 +43,23 @@ const registerUserController = async (
       email,
       password,
     });
+
+    // Generate JWT token for the newly registered user
+    const { generateToken } = require("../utils/jwtUtils");
+    const token = generateToken({
+      id: newUser._id,
+      email: newUser.email,
+      authProvider: newUser.authProvider,
+    });
+
+    // Set JWT token in client cookie (same as login)
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false, // Will be false for localhost in dev.
+      sameSite: "lax", // Allow cross-origin cookies
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
     res
       .status(200)
       .json({ message: "User registered successfully", user: newUser });
