@@ -29,7 +29,7 @@ const DietSchema = new mongoose.Schema(
     protein: { type: Number, required: true },
     fat: { type: Number, required: true },
     mealDateAndTime: { type: Date, required: true },
-    mealWeight: { typ: Number },
+    mealWeight: { type: Number , required : true},
     goalId: { type: mongoose.Types.ObjectId, ref: "Goal" },
   },
   {

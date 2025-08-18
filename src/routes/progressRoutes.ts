@@ -2,7 +2,6 @@ import express, { Router } from "express";
 import {
   getDietGoalProgressController,
   getDietGraphProgressController,
-  getSleepGoalProgressController,
   getWeightGraphProgressController,
   getWorkoutGoalProgressController,
   getWeightGoalProgressController,
@@ -13,11 +12,7 @@ import { ValidationMiddleWare } from "../middleware/authInputHandler";
 const router: Router = express.Router();
 
 router
-  .route("/progress/SleepGoalProgress")
-  .get(ValidationMiddleWare.validateToken(), getSleepGoalProgressController);
-
-router
-  .route("/progress/DietGoalProgress")
+  .route("/progress/DietGoalProgress/:goalId")
   .get(ValidationMiddleWare.validateToken(), getDietGoalProgressController);
 
 router
