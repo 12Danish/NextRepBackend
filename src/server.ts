@@ -11,11 +11,11 @@ import trackerRoutes from "./routes/trackerRoutes";
 import userDetailsRoutes from "./routes/userDetailsRoutes";
 import locationRoutes from "./routes/locationRoutes";
 import progressRoutes from "./routes/progressRoutes";
+import foodSearchRoutes from "./routes/foodSearchRoutes";
 import cors from "cors";
 
 const app = express();
 
-// CORS configuration
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow both frontend and backend origins
   credentials: true, // Allow cookies and credentials
@@ -36,11 +36,12 @@ app.use("/api", trackerRoutes);
 app.use("/api", userDetailsRoutes);
 app.use("/api", progressRoutes);
 app.use("/api", locationRoutes);
+app.use("/api", foodSearchRoutes);
 app.use(errorHandler);
 
 config.connectDB().then(() => {
   app.listen(config.port, () => {
-    console.log(`🚀 Server running on http://localhost:${config.port}`);
+    console.log(`[Server] Server running on http://localhost:${config.port}`);
   });
 });
 

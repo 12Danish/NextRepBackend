@@ -5,6 +5,7 @@ import {
   updateDietController,
   deleteDietController,
   getUserNutritionSummaryController,
+  createBulkMealPlanController,
 } from "../controllers/dietControllers";
 
 import { DietValidationMiddleware } from "../middleware/dietInputHandler";
@@ -43,5 +44,12 @@ router
 router
   .route("/diet/user/summary")
   .get(ValidationMiddleWare.validateToken(), getUserNutritionSummaryController);
+
+router
+  .route("/diet/bulk-meal-plan")
+  .post(
+    ValidationMiddleWare.validateToken(),
+    createBulkMealPlanController
+  );
 
 export default router;
