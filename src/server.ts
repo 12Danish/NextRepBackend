@@ -11,6 +11,7 @@ import trackerRoutes from "./routes/trackerRoutes";
 import userDetailsRoutes from "./routes/userDetailsRoutes";
 import locationRoutes from "./routes/locationRoutes";
 import progressRoutes from "./routes/progressRoutes";
+import foodSearchRoutes from "./routes/foodSearchRoutes";
 import cors from "cors";
 
 const app = express();
@@ -36,6 +37,7 @@ app.use("/api", trackerRoutes);
 app.use("/api", userDetailsRoutes);
 app.use("/api", progressRoutes);
 app.use("/api", locationRoutes);
+app.use("/api", foodSearchRoutes);
 app.use(errorHandler);
 
 config.connectDB().then(() => {

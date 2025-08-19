@@ -37,8 +37,10 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@types/cors": "^2.8.19",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "express-validator": "^7.2.1",
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
