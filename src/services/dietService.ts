@@ -23,6 +23,7 @@ interface MealPlanInput {
   mealDateAndTime: Date;
   mealWeight?: number;
   goalId?: string;
+  recipeId: number;
 }
 
 class DietServices {
@@ -201,8 +202,8 @@ class DietServices {
     
     for (const meal of meals) {
       try {
-        // Get nutrition info for the food
-        const nutritionInfo = await FoodService.getNutritionByName(meal.foodName);
+        // Get nutrition info for the food using recipe ID
+        const nutritionInfo = await FoodService.getNutritionByRecipeId(meal.recipeId);
         
         const dietInput: DietInput = {
           foodName: meal.foodName,
