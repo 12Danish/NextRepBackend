@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import DietProgressServices from "../services/ProgressServices/dietProgressServices";
 
 import { WorkoutProgressServices } from "../services/ProgressServices/workoutProgressServices";
+import { SleepProgressServices } from "../services/ProgressServices/sleepPorgressService";
 
 const getWorkoutGraphProgressController = async (
   req: any,
@@ -24,8 +25,8 @@ const getWorkoutGraphProgressController = async (
       }
     );
 
-    return res.status(200).json({
-      result
+    res.status(200).json({
+      result,
     });
   } catch (err) {
     next(err);
@@ -45,8 +46,8 @@ const getWorkoutGoalProgressController = async (
     const result =
       await WorkoutProgressServices.getWorkoutGoalProgressService(goalId);
 
-    return res.status(200).json({
-    result
+    res.status(200).json({
+      result,
     });
   } catch (err) {
     next(err);
@@ -141,6 +142,17 @@ const getSleepGraphStatsController = async (
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
+    // Extract viewType from query params (default to 'week')
+    const { viewType = "week" } = req.query;
+
+    const result = await SleepProgressServices.getSleepGraphDataService({
+      userId,
+      viewType,
+    });
+
+    res.status(200).json({
+      result,
+    });
   } catch (err) {
     next(err);
   }
@@ -153,4 +165,5 @@ export {
   getWorkoutGoalProgressController,
   getWeightGoalProgressController,
   getWorkoutGraphProgressController,
+  getSleepGraphStatsController,
 };
