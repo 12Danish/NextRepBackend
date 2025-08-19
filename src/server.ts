@@ -16,7 +16,6 @@ import cors from "cors";
 
 const app = express();
 
-// CORS configuration
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow both frontend and backend origins
   credentials: true, // Allow cookies and credentials
@@ -42,7 +41,7 @@ app.use(errorHandler);
 
 config.connectDB().then(() => {
   app.listen(config.port, () => {
-    console.log(`🚀 Server running on http://localhost:${config.port}`);
+    console.log(`[Server] Server running on http://localhost:${config.port}`);
   });
 });
 

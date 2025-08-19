@@ -8,6 +8,6 @@ const router = express.Router();
 router.use(ValidationMiddleWare.validateToken());
 
 // Search for foods
-router.get("/search", searchFoodController);
+router.get("/food/search", searchFoodController);
 
 export default router;
