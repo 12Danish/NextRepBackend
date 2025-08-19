@@ -75,7 +75,7 @@ class FoodService {
   }
 
   /**
-   * Get detailed nutrition information for a specific food
+   * Get detailed nutrition information for a specific food using nutrition widget endpoint
    */
   static async getFoodNutrition(foodId: number): Promise<NutritionInfo> {
     try {
@@ -87,8 +87,8 @@ class FoodService {
         apiKey: this.API_KEY
       });
 
-      // Use the food information endpoint which includes nutrition data
-      const response = await fetch(`${this.BASE_URL}/food/${foodId}/information?${params}`);
+      // Use the nutrition widget endpoint for detailed nutrition data
+      const response = await fetch(`${this.BASE_URL}/recipes/${foodId}/nutritionWidget.json?${params}`);
       
       if (!response.ok) {
         throw new CustomError(`API request failed: ${response.status}`, response.status);
@@ -96,8 +96,52 @@ class FoodService {
 
       const data = await response.json();
       
-      // Extract nutrition data from the response
-      const nutrients = data.nutrition?.nutrients || [];
+      // Extract nutrition data from the nutrients array
+      const nutrients = data.nutrients || [];
+      
+      const calories = nutrients.find((n: any) => n.name === 'Calories')?.amount || 0;
+      const protein = nutrients.find((n: any) => n.name === 'Protein')?.amount || 0;
+      const fat = nutrients.find((n: any) => n.name === 'Fat')?.amount || 0;
+      const carbs = nutrients.find((n: any) => n.name === 'Carbohydrates')?.amount || 0;
+
+      return {
+        calories: calories,
+        protein: protein,
+        fat: fat,
+        carbs: carbs
+      };
+    } catch (error: any) {
+      if (error instanceof CustomError) {
+        throw error;
+      }
+      throw new CustomError('Failed to get nutrition info', 500);
+    }
+  }
+
+  /**
+   * Get nutrition information for a food by recipe ID
+   */
+  static async getNutritionByRecipeId(recipeId: number): Promise<NutritionInfo> {
+    try {
+      if (!this.API_KEY) {
+        throw new CustomError('Spoonacular API key not configured', 500);
+      }
+
+      const params = new URLSearchParams({
+        apiKey: this.API_KEY
+      });
+
+      // Use the nutrition widget endpoint for detailed nutrition data
+      const response = await fetch(`${this.BASE_URL}/recipes/${recipeId}/nutritionWidget.json?${params}`);
+      
+      if (!response.ok) {
+        throw new CustomError(`API request failed: ${response.status}`, response.status);
+      }
+
+      const data = await response.json();
+      
+      // Extract nutrition data from the nutrients array
+      const nutrients = data.nutrients || [];
       
       const calories = nutrients.find((n: any) => n.name === 'Calories')?.amount || 0;
       const protein = nutrients.find((n: any) => n.name === 'Protein')?.amount || 0;
