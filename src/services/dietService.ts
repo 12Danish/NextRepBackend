@@ -2,6 +2,7 @@ import { Diet, IDiet } from "../models/DietModel";
 import { CustomError } from "../utils/customError";
 import mongoose from "mongoose";
 import CommonUtlis from "./commonUtils";
+import FoodService from "./foodService";
 
 interface DietInput {
   foodName: string;
@@ -9,8 +10,16 @@ interface DietInput {
   meal: "breakfast" | "lunch" | "dinner" | "snack";
   calories: number;
   carbs: number;
-  protein: number;
   fat: number;
+  protein: number;
+  mealDateAndTime: Date;
+  mealWeight?: number;
+  goalId?: string;
+}
+
+interface MealPlanInput {
+  foodName: string;
+  meal: "breakfast" | "lunch" | "dinner" | "snack";
   mealDateAndTime: Date;
   mealWeight?: number;
   goalId?: string;
@@ -182,6 +191,41 @@ class DietServices {
     }
 
     return result[0];
+  }
+
+  /**
+   * Creates multiple diet entries for a meal plan
+   */
+  static async createBulkMealPlanService(meals: MealPlanInput[], userId: string): Promise<IDiet[]> {
+    const createdMeals: IDiet[] = [];
+    
+    for (const meal of meals) {
+      try {
+        // Get nutrition info for the food
+        const nutritionInfo = await FoodService.getNutritionByName(meal.foodName);
+        
+        const dietInput: DietInput = {
+          foodName: meal.foodName,
+          userId,
+          meal: meal.meal,
+          calories: nutritionInfo.calories,
+          carbs: nutritionInfo.carbs,
+          protein: nutritionInfo.protein,
+          fat: nutritionInfo.fat,
+          mealDateAndTime: meal.mealDateAndTime,
+          mealWeight: meal.mealWeight,
+          goalId: meal.goalId,
+        };
+
+        const newDiet = await this.createDietService(dietInput);
+        createdMeals.push(newDiet);
+      } catch (error) {
+        console.error(`Failed to create meal for ${meal.foodName}:`, error);
+        // Continue with other meals even if one fails
+      }
+    }
+
+    return createdMeals;
   }
 }
 

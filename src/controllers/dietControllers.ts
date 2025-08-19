@@ -243,10 +243,66 @@ const getUserNutritionSummaryController = async (
   }
 };
 
+/**
+ * @desc    Create multiple diet entries for a meal plan
+ * @route   POST /api/diet/bulk-meal-plan
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ * Content-Type: application/json
+ *
+ * @body
+ * {
+ *   "meals": [
+ *     {
+ *       "foodName": "string",
+ *       "meal": "breakfast|lunch|dinner|snack",
+ *       "mealDateAndTime": "Date",
+ *       "mealWeight": number,
+ *       "goalId": "string"
+ *     }
+ *   ]
+ * }
+ *
+ * @returns
+ * {
+ *   "message": "Meal plan created successfully",
+ *   "data": [ ...createdMeals ]
+ * }
+ */
+const createBulkMealPlanController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const { meals } = req.body;
+
+    if (!meals || !Array.isArray(meals) || meals.length === 0) {
+      return res.status(400).json({
+        message: "Meals array is required and must not be empty"
+      });
+    }
+
+    const createdMeals = await DietServices.createBulkMealPlanService(meals, userId);
+
+    res.status(200).json({
+      message: "Meal plan created successfully",
+      data: createdMeals,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export {
   createDietController,
   getDietsController,
   updateDietController,
   deleteDietController,
   getUserNutritionSummaryController,
+  createBulkMealPlanController,
 };
