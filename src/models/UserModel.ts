@@ -9,11 +9,11 @@ export interface IUser extends Document {
   firebaseUid?: string;
   createdAt: Date;
   updatedAt: Date;
-  phone_num: string;
-  dob: Date;
-  country: string;
-  height: number;
-  weight: number;
+  phone_num?: string;
+  dob?: Date;
+  country?: string;
+  height?: number;
+  weight?: number;
 }
 
 
