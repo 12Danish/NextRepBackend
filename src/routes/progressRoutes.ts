@@ -6,6 +6,7 @@ import {
   getWorkoutGoalProgressController,
   getWeightGoalProgressController,
   getWorkoutGraphProgressController,
+  getSleepGraphStatsController,
 } from "../controllers/progressController";
 
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
@@ -35,6 +36,8 @@ router
   .route("/progress/WorkoutGoalProgress/:goalId")
   .get(ValidationMiddleWare.validateToken(), getWorkoutGoalProgressController);
 
-router.route("/progress/sleepStats").get(ValidationMiddleWare.validateToken())
+router
+  .route("/progress/sleepStats")
+  .get(ValidationMiddleWare.validateToken(), getSleepGraphStatsController);
 
 export default router;

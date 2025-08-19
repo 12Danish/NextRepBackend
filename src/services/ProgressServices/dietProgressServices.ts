@@ -1,8 +1,6 @@
 import { Diet } from "../../models/DietModel";
 import { Tracker } from "../../models/TrackerModel";
-import { Workout } from "../../models/WorkoutModel";
 import { Goal } from "../../models/GoalsModel";
-import SleepModel from "../../models/SleepModel";
 import mongoose from "mongoose";
 import { CustomError } from "../../utils/customError";
 import CommonUtlis from "../commonUtils";
