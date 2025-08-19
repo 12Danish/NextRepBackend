@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import DietProgressServices from "../services/ProgressServices/dietProgressServices";
 
+import { WorkoutProgressServices } from "../services/ProgressServices/workoutProgressServices";
+
 const getWorkoutGraphProgressController = async (
   req: any,
   res: Response,
@@ -10,6 +12,56 @@ const getWorkoutGraphProgressController = async (
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
+
+    // Extract viewType from query params (default to 'week')
+    const { viewType = "week" } = req.query;
+
+    // Call the workout graph progress service
+    const result = await WorkoutProgressServices.getWorkoutGraphProgressService(
+      {
+        userId,
+        viewType: viewType as "day" | "week" | "month",
+      }
+    );
+
+    return res.status(200).json({
+      result
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getWorkoutGoalProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Extract goalId from URL parameters
+    const { goalId } = req.params;
+
+    // Call the workout goal progress service
+    const result =
+      await WorkoutProgressServices.getWorkoutGoalProgressService(goalId);
+
+    return res.status(200).json({
+    result
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getWeightGoalProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const goalId = req.params.goalId;
   } catch (err) {
     next(err);
   }
@@ -68,19 +120,6 @@ const getDietGraphProgressController = async (
   }
 };
 
-const getWeightGoalProgressController = async (
-  req: any,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const decoded = req.user as jwt.JwtPayload;
-    const userId = decoded.id;
-  } catch (err) {
-    next(err);
-  }
-};
-
 const getWeightGraphProgressController = async (
   req: any,
   res: Response,
@@ -94,7 +133,7 @@ const getWeightGraphProgressController = async (
   }
 };
 
-const getWorkoutGoalProgressController = async (
+const getSleepGraphStatsController = async (
   req: any,
   res: Response,
   next: NextFunction
