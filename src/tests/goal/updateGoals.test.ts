@@ -277,7 +277,7 @@ describe("Update Goals Test suite", () => {
       nonWeightGoalId = workoutRes.body.newGoal._id;
     });
 
-    it.only("should update currentWeight and store previous weight with date", async () => {
+    it("should update currentWeight and store previous weight with date", async () => {
       const response = await agent
         .put(`/api/goal/updateWeight/${weightGoalId}`)
         .send({ newWeight: 74 });

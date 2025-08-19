@@ -32,7 +32,9 @@ router
   .get(ValidationMiddleWare.validateToken(), getWeightGraphProgressController);
 
 router
-  .route("/progress/WorkoutGoalProgress")
+  .route("/progress/WorkoutGoalProgress/:goalId")
   .get(ValidationMiddleWare.validateToken(), getWorkoutGoalProgressController);
+
+router.route("/progress/sleepStats").get(ValidationMiddleWare.validateToken())
 
 export default router;
