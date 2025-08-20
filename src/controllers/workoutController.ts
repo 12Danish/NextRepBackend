@@ -93,7 +93,7 @@ const getWorkoutSchedule = async (
     const userId = decoded.id;
     const viewType = req.query.viewType ? req.query.viewType : "month";
     const offset = req.query.offset ? req.query.offset : 0;
-    const particularDate = req.query.particularDate;
+    const particularDate = req.query.particularDate ? new Date(req.query.particularDate) : undefined;
 
     const workoutsData = await WorkoutServices.getWorkoutScheduleService({
       userId,
