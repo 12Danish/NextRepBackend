@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import {
   addWorkoutController,
   getWorkoutSchedule,
+  getWorkoutByIdController,
   deleteWorkoutController,
   updateWorkoutController,
 } from "../controllers/workoutController";
@@ -20,6 +21,10 @@ router
 router
   .route("/workout/getSchedule")
   .get(ValidationMiddleWare.validateToken(), getWorkoutSchedule);
+
+router
+  .route("/workout/get/:id")
+  .get(ValidationMiddleWare.validateToken(), getWorkoutByIdController);
 
 router
   .route("/workout/updateWorkout/:id")

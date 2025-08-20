@@ -108,9 +108,52 @@ const getWorkoutSchedule = async (
   }
 };
 
+/**
+ * @desc    Get a single workout entry by ID
+ * @route   GET /api/workout/:id
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @params
+ * id (string) - ID of the workout entry
+ *
+ * @returns
+ * {
+ *   "message": "Workout entry retrieved successfully",
+ *   "data": { ...workoutEntry }
+ * }
+ *
+ * @errors
+ * - 404 if no entry found with given ID
+ * - 500 in case of unexpected error
+ */
+const getWorkoutByIdController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+
+    const workout = await WorkoutServices.getWorkoutByIdService(id, userId);
+
+    res.status(200).json({
+      message: "Workout entry retrieved successfully",
+      data: workout,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export {
   addWorkoutController,
   deleteWorkoutController,
   updateWorkoutController,
   getWorkoutSchedule,
+  getWorkoutByIdController,
 };
