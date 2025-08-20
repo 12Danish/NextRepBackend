@@ -61,6 +61,23 @@ class WorkoutServices {
     return true;
   }
 
+  static async getWorkoutByIdService(workoutId: string, userId: string) {
+    if (!mongoose.Types.ObjectId.isValid(workoutId)) {
+      throw new CustomError("Invalid workout ID", 400);
+    }
+
+    const workout = await Workout.findOne({
+      _id: new mongoose.Types.ObjectId(workoutId),
+      userId: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!workout) {
+      throw new CustomError("Workout not found", 404);
+    }
+
+    return workout;
+  }
+
 static async getWorkoutScheduleService({
   userId,
   viewType,

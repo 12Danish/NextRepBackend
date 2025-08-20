@@ -65,6 +65,26 @@ class SleepServices {
   }
 
   /**
+   * Gets a specific sleep entry by its ID
+   */
+  static async getSleepByIdService(sleepId: string, userId: string): Promise<ISleep> {
+    if (!mongoose.Types.ObjectId.isValid(sleepId)) {
+      throw new CustomError("Invalid sleep ID", 400);
+    }
+
+    const sleep = await Sleep.findOne({
+      _id: new mongoose.Types.ObjectId(sleepId),
+      userId: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!sleep) {
+      throw new CustomError("Sleep entry not found", 404);
+    }
+
+    return sleep;
+  }
+
+  /**
    * Updates a sleep entry by id
    */
   static async updateSleepService(

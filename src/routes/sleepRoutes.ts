@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import {
   createSleepController,
   getSleepController,
+  getSleepByIdController,
   updateSleepController,
   deleteSleepController,
 } from "../controllers/sleepController";
@@ -15,6 +16,10 @@ const router: Router = express.Router();
 router
   .route("/sleep/getSleep")
   .get(ValidationMiddleWare.validateToken(), getSleepController);
+
+router
+  .route("/sleep/get/:sleepId")
+  .get(ValidationMiddleWare.validateToken(), getSleepByIdController);
 
 router
   .route("/sleep/create")
