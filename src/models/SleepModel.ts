@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface ISleep extends Document {
   userId: mongoose.Types.ObjectId;
-  goalId: { type: mongoose.Types.ObjectId; ref: "Goal" };
+  goalId?: mongoose.Types.ObjectId;
   duration: number;
   date: Date;
   createdAt: Date;
@@ -14,12 +14,11 @@ const SleepSchema = new mongoose.Schema(
     userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
     duration: { type: Number, required: true },
     date: { type: Date, required: true },
-    goalId: { type: mongoose.Types.ObjectId, ref: "Goal" },
+    goalId: { type: mongoose.Types.ObjectId, ref: "Goal", required: false }, // Make goalId optional
   },
   {
     timestamps: true, // ⏱ Automatically adds `createdAt` and `updatedAt`
   }
 );
-SleepSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 export default mongoose.model<ISleep>("Sleep", SleepSchema);

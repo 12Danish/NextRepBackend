@@ -1,4 +1,5 @@
 import { registerAndLoginUser } from "../testUtils";
+import Sleep from "../../models/SleepModel";
 
 describe("Add Goal Tests Suite", () => {
   let agent: any;
@@ -125,6 +126,12 @@ describe("Add Goal Tests Suite", () => {
         expect(res.body.newGoal).toHaveProperty("_id");
         expect(res.body.newGoal.category).toBe("sleep");
         expect(res.body.newGoal.data.targetHours).toBe(8);
+
+        // Verify that a sleep record was also created
+        const sleepRecord = await Sleep.findOne({ goalId: res.body.newGoal._id });
+        expect(sleepRecord).toBeTruthy();
+        expect(sleepRecord?.duration).toBe(8);
+        expect(sleepRecord?.userId.toString()).toBe(res.body.newGoal.userId);
       });
 
       it("should fail to add sleep goal with negative hours", async () => {
