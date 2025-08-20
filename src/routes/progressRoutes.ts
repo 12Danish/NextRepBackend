@@ -25,7 +25,7 @@ router
   .get(ValidationMiddleWare.validateToken(), getDietGraphProgressController);
 
 router
-  .route("/progress/WeightGoalProgress")
+  .route("/progress/WeightGoalProgress/:goalId")
   .get(ValidationMiddleWare.validateToken(), getWeightGoalProgressController);
 
 router

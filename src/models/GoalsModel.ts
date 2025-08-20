@@ -15,7 +15,7 @@ interface IBaseGoal extends Document {
 }
 
 // Category-specific interfaces
-interface IWeightGoalData {
+export interface IWeightGoalData {
   goalType: "gain" | "loss" | "maintenance";
   targetWeight: number;
   currentWeight: number;
