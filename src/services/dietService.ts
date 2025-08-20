@@ -88,7 +88,7 @@ class DietServices {
     const { start, end } = CommonUtlis.calculate_start_and_end_dates(
       viewType,
       offset,
-      particularDate ? new Date(particularDate) : undefined
+      particularDate
     );
 
     // Get diets in the given range
