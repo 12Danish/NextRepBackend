@@ -5,7 +5,7 @@ import CommonUtlis from "./commonUtils";
 import { getScheduleServiceProps } from "./commonUtils";
 interface addOrUpdateWorkoutServiceProps {
   exerciseName: string;
-  type: "weight lifting" | "cardio" | "cross fit" | "yoga";
+  type: "weight lifting" | "cardio" | "crossfit" | "yoga";
   userId: mongoose.Types.ObjectId | string;
   targetMuscleGroup: Array<
     "chest" | "back" | "legs" | "arms" | "shoulders" | "core"
@@ -14,6 +14,7 @@ interface addOrUpdateWorkoutServiceProps {
   workoutDateAndTime: Date;
   duration?: number;
   reps?: number;
+  sets?: number;
 }
 
 class WorkoutServices {
@@ -22,6 +23,7 @@ class WorkoutServices {
     type,
     duration,
     reps,
+    sets,
     targetMuscleGroup,
     goalId,
     workoutDateAndTime,
@@ -36,6 +38,7 @@ class WorkoutServices {
       type,
       duration,
       reps,
+      sets: sets || 1,
       targetMuscleGroup,
       goalId: goalId || null,
       workoutDateAndTime,
