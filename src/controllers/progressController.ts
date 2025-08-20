@@ -4,6 +4,7 @@ import DietProgressServices from "../services/ProgressServices/dietProgressServi
 
 import { WorkoutProgressServices } from "../services/ProgressServices/workoutProgressServices";
 import { SleepProgressServices } from "../services/ProgressServices/sleepPorgressService";
+import { WeightProgressServices } from "../services/ProgressServices/weightProgressService";
 
 const getWorkoutGraphProgressController = async (
   req: any,
@@ -60,9 +61,12 @@ const getWeightGoalProgressController = async (
   next: NextFunction
 ) => {
   try {
-    const decoded = req.user as jwt.JwtPayload;
-    const userId = decoded.id;
+
     const goalId = req.params.goalId;
+
+    const result = await WeightProgressServices.getWeightGoalProgressService(goalId);
+
+    res.status(200).json(result);
   } catch (err) {
     next(err);
   }
@@ -129,6 +133,11 @@ const getWeightGraphProgressController = async (
   try {
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
+
+    const result =
+      await WeightProgressServices.getWeightGraphProgressService(userId);
+
+    res.status(200).json(result);
   } catch (err) {
     next(err);
   }

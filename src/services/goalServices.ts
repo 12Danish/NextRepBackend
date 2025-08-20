@@ -331,23 +331,35 @@ class GoalServices {
       throw new CustomError("Only weight goals allowed for this function", 400);
     }
 
-    // Ensure previousWeights exists
+    // Ensure data object and previousWeights array exist
+    if (!weightGoal.data) {
+     throw new CustomError("Goal data is missing", 400);
+    }
     if (!Array.isArray(weightGoal.data.previousWeights)) {
       weightGoal.data.previousWeights = [];
     }
 
     // Push current weight into previous weights with timestamp
-    weightGoal.data.previousWeights.push({
-      weight: weightGoal.data.currentWeight,
-      date: new Date(),
-    });
+    if (weightGoal.data.currentWeight !== undefined) {
+      weightGoal.data.previousWeights.push({
+        weight: weightGoal.data.currentWeight,
+        date: new Date(),
+      });
+    }
 
     // Update current weight
     weightGoal.data.currentWeight = newWeight;
 
-    await weightGoal.save();
+    // Mark the nested object as modified (important for Mongoose)
+    weightGoal.markModified("data");
 
-    return weightGoal;
+    // Save and return the updated document
+    const savedGoal = await weightGoal.save();
+
+    // Optional: Fetch fresh from DB to ensure we have latest state
+    const updatedGoal = await Goal.findById(goalId);
+
+    return updatedGoal || savedGoal;
   }
 }
 
