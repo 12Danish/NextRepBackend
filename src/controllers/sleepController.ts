@@ -100,6 +100,48 @@ const getSleepController = async (
 };
 
 /**
+ * @desc    Get a single sleep entry by ID
+ * @route   GET /api/sleep/:sleepId
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @params
+ * sleepId (string) - ID of the sleep entry
+ *
+ * @returns
+ * {
+ *   "message": "Sleep entry retrieved successfully",
+ *   "data": { ...sleepEntry }
+ * }
+ *
+ * @errors
+ * - 404 if no entry found with given ID
+ * - 500 in case of unexpected error
+ */
+const getSleepByIdController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { sleepId } = req.params;
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+
+    const sleep = await SleepServices.getSleepByIdService(sleepId, userId);
+
+    res.status(200).json({
+      message: "Sleep entry retrieved successfully",
+      data: sleep,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @desc    Update a sleep entry
  * @route   PATCH /api/sleep/:sleepId
  * @access  Private
@@ -190,6 +232,7 @@ const deleteSleepController = async (
 export {
   createSleepController,
   getSleepController,
+  getSleepByIdController,
   updateSleepController,
   deleteSleepController,
 };
