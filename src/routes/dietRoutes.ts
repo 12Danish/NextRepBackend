@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import {
   createDietController,
   getDietsController,
+  getDietByIdController,
   updateDietController,
   deleteDietController,
   getUserNutritionSummaryController,
@@ -15,6 +16,10 @@ const router: Router = express.Router();
 router
   .route("/diet/getDiet")
   .get(ValidationMiddleWare.validateToken(), getDietsController);
+
+router
+  .route("/diet/get/:dietId")
+  .get(ValidationMiddleWare.validateToken(), getDietByIdController);
 
 router
   .route("/diet/createDiet")

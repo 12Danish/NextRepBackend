@@ -107,6 +107,48 @@ const getDietsController = async (
 };
 
 /**
+ * @desc    Get a single diet entry by ID
+ * @route   GET /api/diet/:dietId
+ * @access  Private
+ *
+ * @headers
+ * Authorization: Bearer <token>
+ *
+ * @params
+ * dietId (string) - ID of the diet entry
+ *
+ * @returns
+ * {
+ *   "message": "Diet entry retrieved successfully",
+ *   "data": { ...dietEntry }
+ * }
+ *
+ * @errors
+ * - 404 if no entry found with given ID
+ * - 500 in case of unexpected error
+ */
+const getDietByIdController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { dietId } = req.params;
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+
+    const diet = await DietServices.getDietByIdService(dietId, userId);
+
+    res.status(200).json({
+      message: "Diet entry retrieved successfully",
+      data: diet,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * @desc    Update a diet entry
  * @route   PATCH /api/diet/:dietId
  * @access  Private
@@ -301,6 +343,7 @@ const createBulkMealPlanController = async (
 export {
   createDietController,
   getDietsController,
+  getDietByIdController,
   updateDietController,
   deleteDietController,
   getUserNutritionSummaryController,

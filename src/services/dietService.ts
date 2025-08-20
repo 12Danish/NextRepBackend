@@ -149,6 +149,26 @@ class DietServices {
   }
 
   /**
+   * Gets a specific diet entry by its ID
+   */
+  static async getDietByIdService(dietId: string, userId: string): Promise<IDiet> {
+    if (!mongoose.Types.ObjectId.isValid(dietId)) {
+      throw new CustomError("Invalid diet ID", 400);
+    }
+
+    const diet = await Diet.findOne({
+      _id: new mongoose.Types.ObjectId(dietId),
+      userId: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!diet) {
+      throw new CustomError("Diet entry not found", 404);
+    }
+
+    return diet;
+  }
+
+  /**
    * Deletes a specific diet entry by its ID
    */
   static async deleteDietService(dietId: string): Promise<IDiet> {
