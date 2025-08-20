@@ -90,11 +90,14 @@ class GoalServices {
     if (category === "sleep") {
       try {
         const sleepData = data as ISleepGoalData;
+        const sleepDate = new Date(startDate);
+        sleepDate.setHours(0, 0, 0, 0); // Set to start of day
+        
         await Sleep.create({
           userId: new mongoose.Types.ObjectId(userId),
           goalId: newGoal._id,
           duration: sleepData.targetHours,
-          date: startDate,
+          date: sleepDate,
         });
       } catch (error) {
         console.error("Failed to create sleep record for sleep goal:", error);
