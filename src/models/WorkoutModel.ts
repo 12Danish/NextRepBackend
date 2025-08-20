@@ -1,10 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IWorkout extends Document {
-  type: "weight lifting" | "cardio" | "cross fit" | "yoga";
+  type: "weight lifting" | "cardio" | "crossfit" | "yoga";
   exerciseName: string;
   duration: number; // Duration in minutes
   reps: number;
+  sets: number;
   userId: mongoose.Types.ObjectId;
   targetMuscleGroup: Array<
     "chest" | "back" | "legs" | "arms" | "shoulders" | "core"
@@ -23,12 +24,13 @@ const WorkoutSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["weight lifting", "cardio", "cross fit", "yoga"],
+      enum: ["weight lifting", "cardio", "crossfit", "yoga"],
       required: true,
     },
     exerciseName: { type: String, required: true },
     duration: { type: Number }, // Duration in minutes
     reps: { type: Number },
+    sets: { type: Number, default: 1 },
     userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
     targetMuscleGroup: {
       type: [String],

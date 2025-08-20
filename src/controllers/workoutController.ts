@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 
 import WorkoutServices from "../services/workoutServices";
@@ -17,6 +17,7 @@ const addWorkoutController = async (
       type,
       duration,
       reps,
+      sets,
       targetMuscleGroup,
       goalId,
       workoutDateAndTime,
@@ -27,6 +28,7 @@ const addWorkoutController = async (
       type,
       duration: Number(duration),
       reps: Number(reps),
+      sets: Number(sets) || 1,
       targetMuscleGroup,
       goalId,
       workoutDateAndTime: new Date(workoutDateAndTime),
