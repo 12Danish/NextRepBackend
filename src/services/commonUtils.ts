@@ -2,7 +2,7 @@ export interface getScheduleServiceProps {
   userId: string;
   offset: number;
   viewType: "day" | "month" | "year";
-  particularDate: Date;
+  particularDate?: Date; 
 }
 export default class CommonUtlis {
   static calculate_start_and_end_dates(

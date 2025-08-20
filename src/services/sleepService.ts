@@ -33,7 +33,7 @@ class SleepServices {
     const { start, end } = CommonUtlis.calculate_start_and_end_dates(
       viewType,
       offset,
-      particularDate ? new Date(particularDate) : undefined
+      particularDate
     );
 
     // Get sleep entries in the range

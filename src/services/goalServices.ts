@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Goal } from "../models/GoalsModel";
+import Sleep from "../models/SleepModel";
 import { CustomError } from "../utils/customError";
 
 // Interface for category-specific data
@@ -85,6 +86,26 @@ class GoalServices {
       data,
     });
 
+    // If it's a sleep goal, automatically create a sleep record
+    if (category === "sleep") {
+      try {
+        const sleepData = data as ISleepGoalData;
+        const sleepDate = new Date(startDate);
+        sleepDate.setHours(0, 0, 0, 0); // Set to start of day
+        
+        await Sleep.create({
+          userId: new mongoose.Types.ObjectId(userId),
+          goalId: newGoal._id,
+          duration: sleepData.targetHours,
+          date: sleepDate,
+        });
+      } catch (error) {
+        console.error("Failed to create sleep record for sleep goal:", error);
+        // Don't throw error here as the goal was created successfully
+        // The sleep record creation failure shouldn't prevent the goal from being created
+      }
+    }
+
     return newGoal;
   }
 
@@ -92,6 +113,21 @@ class GoalServices {
     if (!mongoose.Types.ObjectId.isValid(goalId)) {
       throw new CustomError("Invalid goal ID", 400);
     }
+
+    const goal = await Goal.findById(goalId);
+    if (!goal) {
+      throw new CustomError("Goal not found", 404);
+    }
+
+    if (goal.category === "sleep") {
+      try {
+        await Sleep.deleteMany({ goalId: new mongoose.Types.ObjectId(goalId) });
+      } catch (error) {
+        console.error("Failed to delete sleep records for sleep goal:", error);
+        // Don't throw error here as the goal deletion should still proceed
+      }
+    }
+
     const result = await Goal.findByIdAndDelete(goalId);
 
     if (!result) {
