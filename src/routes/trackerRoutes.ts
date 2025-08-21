@@ -5,6 +5,7 @@ import {
   deleteTrackerController,
   updateTrackerController,
   getTrackedController,
+  getComprehensiveTrackingController,
 } from "../controllers/trackerControllers";
 
 import TrackerValidationMiddleware from "../middleware/trackerMiddleware";
@@ -13,6 +14,10 @@ const router: Router = express.Router();
 router
   .route("/tracker/getTracked")
   .get(ValidationMiddleWare.validateToken(), getTrackedController);
+
+router
+  .route("/tracker/getComprehensiveTracking")
+  .get(ValidationMiddleWare.validateToken(), getComprehensiveTrackingController);
 
 router
   .route("/tracker/updateTracking/:trackerId")
