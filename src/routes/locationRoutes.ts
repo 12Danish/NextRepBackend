@@ -1,75 +1,28 @@
-import { Router } from 'express';
-import { LocationController } from '../controllers/locationController';
+import express, { Router } from "express";
+import { LocationController } from "../controllers/locationController";
+import { ValidationMiddleWare } from "../middleware/authInputHandler";
 
-const router = Router();
+const router: Router = express.Router();
 
-/**
- * @swagger
- * /api/locations/nearby:
- *   get:
- *     summary: Find nearby fitness locations
- *     tags: [Locations]
- *     parameters:
- *       - in: query
- *         name: lat
- *         required: true
- *         schema:
- *           type: number
- *         description: Latitude
- *       - in: query
- *         name: lng
- *         required: true
- *         schema:
- *           type: number
- *         description: Longitude
- *       - in: query
- *         name: radius
- *         schema:
- *           type: number
- *         description: Search radius in meters (default 5000)
- *       - in: query
- *         name: type
- *         schema:
- *           type: string
- *         description: Location type filter
- *       - in: query
- *         name: searchQuery
- *         schema:
- *           type: string
- *         description: Search query for names/addresses
- *       - in: query
- *         name: limit
- *         schema:
- *           type: number
- *         description: Maximum number of results (default 20)
- *     responses:
- *       200:
- *         description: List of nearby fitness locations
- *       400:
- *         description: Invalid parameters
- *       500:
- *         description: Server error
- */
-router.get('/nearby', LocationController.findNearbyLocations);
+router
+  .route("/locations/nearby")
+  .get(ValidationMiddleWare.validateToken(), LocationController.findNearbyLocations);
 
-/**
- * @swagger
- * /api/locations/categories:
- *   get:
- *     summary: Get available location categories
- *     tags: [Locations]
- *     responses:
- *       200:
- *         description: List of available location categories
- */
-router.get('/categories', LocationController.getLocationCategories);
+router
+  .route("/locations/categories")
+  .get(ValidationMiddleWare.validateToken(), LocationController.getLocationCategories);
 
-// Cleanup routes
-router.post('/cleanup', LocationController.cleanupCorruptedLocations);
-router.post('/cleanup-duplicates', LocationController.cleanupDuplicateLocations);
+router
+  .route("/locations/cleanup")
+  .post(ValidationMiddleWare.validateToken(), LocationController.cleanupCorruptedLocations);
 
-// Health check route
-router.get('/health', LocationController.checkLocationHealth);
+router
+  .route("/locations/cleanup-duplicates")
+  .post(ValidationMiddleWare.validateToken(), LocationController.cleanupDuplicateLocations);
+
+router
+  .route("/locations/health")
+  .get(ValidationMiddleWare.validateToken(), LocationController.checkLocationHealth);
 
 export default router;
 
