@@ -11,33 +11,27 @@ class TrackerValidationMiddleware {
       body("type")
         .isIn(["sleep", "workout", "diet"])
         .withMessage("type must be one of 'sleep', 'workout', or 'diet'"),
+      body("workoutOrDietData")
+        .isObject()
+        .withMessage("workoutOrDietData must be an object"),
 
-      // Conditional validation for workout
       body("workoutOrDietData").custom((value, { req }) => {
+        
         if (req.body.type === "workout") {
-          const hasReps = value.completedReps;
-          const hasTime = value.completedTime;
-
-          if (!hasReps && !hasTime) {
-            throw new Error(
-              "For type 'workout', either completedReps or completedTime must be provided"
-            );
+            // For workout, just ensure both fields exist (can be 0)
+          if (value.completedReps === undefined || value.completedTime === undefined) {
+            return false; 
           }
         }
-        return true;
-      }),
-
-      // Conditional validation for diet
-      body("workoutOrDietData").custom((value, { req }) => {
+        
         if (req.body.type === "diet") {
-          if (!value.weightConsumed) {
-            throw new Error(
-              "For type 'diet', weightConsumed must be provided as a number"
-            );
+          if (value.weightConsumed === undefined) {
+            return false; 
           }
         }
+        
         return true;
-      }),
+      }).withMessage("Required tracking data is missing"),
 
       this.handleValidationErrors,
     ];
@@ -59,7 +53,7 @@ class TrackerValidationMiddleware {
 
       (req: Request, res: Response, next: NextFunction) => {
         const { trackerId, referenceId } = req.params;
-
+        
         if (!trackerId && !referenceId) {
           return next(
             new CustomError(

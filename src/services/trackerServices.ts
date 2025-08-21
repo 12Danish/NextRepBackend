@@ -24,6 +24,101 @@ class TrackerServices {
     }).sort({ date: 1 });
   }
 
+  /**
+   * Get comprehensive tracking data for a date range including original entries and tracker data
+   */
+  static async getComprehensiveTrackingService({ 
+    startDate, 
+    endDate, 
+    userId 
+  }: { 
+    startDate: Date; 
+    endDate: Date; 
+    userId: string 
+  }) {
+    // Get all tracker entries for the user (not limited by date since we want to match with original entries)
+    const trackerEntries = await Tracker.find({
+      userId: new mongoose.Types.ObjectId(userId),
+    }).sort({ date: 1 });
+
+    // Get all diet entries for the date range
+    const dietEntries = await Diet.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      mealDateAndTime: { $gte: startDate, $lt: endDate },
+    }).sort({ mealDateAndTime: 1 });
+
+    // Get all workout entries for the date range
+    const workoutEntries = await Workout.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      workoutDateAndTime: { $gte: startDate, $lt: endDate },
+    }).sort({ workoutDateAndTime: 1 });
+
+    // Get all sleep entries for the date range
+    const sleepEntries = await SleepModel.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      date: { $gte: startDate, $lt: endDate },
+    }).sort({ date: 1 });
+
+    // Group by date and match tracker data
+    const groupedData: any = {};
+
+    // Process diet entries
+    dietEntries.forEach((diet: any) => {
+      const dateStr = diet.mealDateAndTime.toISOString().split('T')[0];
+      if (!groupedData[dateStr]) groupedData[dateStr] = [];
+      
+      // Find tracker by referenceId, not by date
+      const tracker = trackerEntries.find(t => 
+        t.type === 'diet' && 
+        t.referenceId.toString() === (diet._id as any).toString()
+      );
+
+      groupedData[dateStr].push({
+        type: 'diet',
+        data: diet,
+        tracker: tracker || null
+      });
+    });
+
+    // Process workout entries
+    workoutEntries.forEach((workout: any) => {
+      const dateStr = workout.workoutDateAndTime.toISOString().split('T')[0];
+      if (!groupedData[dateStr]) groupedData[dateStr] = [];
+      
+      // Find tracker by referenceId, not by date
+      const tracker = trackerEntries.find(t => 
+        t.type === 'workout' && 
+        t.referenceId.toString() === (workout._id as any).toString()
+      );
+
+      groupedData[dateStr].push({
+        type: 'workout',
+        data: workout,
+        tracker: tracker || null
+      });
+    });
+
+    // Process sleep entries
+    sleepEntries.forEach((sleep: any) => {
+      const dateStr = sleep.date.toISOString().split('T')[0];
+      if (!groupedData[dateStr]) groupedData[dateStr] = [];
+      
+      // Find tracker by referenceId, not by date
+      const tracker = trackerEntries.find(t => 
+        t.type === 'sleep' && 
+        t.referenceId.toString() === (sleep._id as any).toString()
+      );
+
+      groupedData[dateStr].push({
+        type: 'sleep',
+        data: sleep,
+        tracker: tracker || null
+      });
+    });
+
+    return groupedData;
+  }
+
   static async addTrackerService({
     userId,
     type,

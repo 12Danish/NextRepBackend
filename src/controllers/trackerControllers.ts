@@ -26,6 +26,32 @@ const getTrackedController = async (
   }
 };
 
+const getComprehensiveTrackingController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const decoded = req.user as jwt.JwtPayload;
+    const userId = decoded.id;
+    const startDate = new Date(req.query.startDate as string);
+    const endDate = new Date(req.query.endDate as string);
+
+    const trackingData = await TrackerServices.getComprehensiveTrackingService({
+      startDate,
+      endDate,
+      userId,
+    });
+
+    res.status(200).json({
+      message: "Successfully retrieved comprehensive tracking data",
+      trackingData,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const addTrackerController = async (
   req: any,
   res: Response,
@@ -52,6 +78,7 @@ const addTrackerController = async (
       newTracker,
     });
   } catch (err) {
+    console.error("addTrackerController error:", err);
     next(err);
   }
 };
@@ -100,4 +127,5 @@ export {
   addTrackerController,
   updateTrackerController,
   getTrackedController,
+  getComprehensiveTrackingController,
 };
