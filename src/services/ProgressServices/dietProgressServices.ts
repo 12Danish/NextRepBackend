@@ -22,6 +22,15 @@ class DietProgressServices {
       throw new CustomError("Category must be diet", 400);
     }
 
+    // Calculate goal duration in days
+    const goalDurationMs =
+      dietGoal.targetDate.getTime() - dietGoal.startDate.getTime();
+    const goalDurationDays = Math.ceil(goalDurationMs / (1000 * 60 * 60 * 24));
+
+    if (goalDurationDays <= 0) {
+      throw new CustomError("Invalid goal duration", 400);
+    }
+
     // Get all scheduled diets for this goal
     const mappedScheduledDiets = await Diet.find({ goalId: dietGoal._id });
 
@@ -105,6 +114,7 @@ class DietProgressServices {
               $multiply: ["$dietInfo.carbs", "$consumptionRatio"],
             },
           },
+          totalTrackedDays: { $sum: 1 }, // Count the number of tracking entries
         },
       },
     ]);
@@ -123,74 +133,102 @@ class DietProgressServices {
     const consumption = actualConsumption[0];
     const goalData = dietGoal.data;
 
+    // Calculate total target values based on goal duration
+    // The target values in goalData are per day, so multiply by goal duration
+    const totalTargetCalories = goalData.targetCalories * goalDurationDays;
+    const totalTargetProteins = goalData.targetProteins * goalDurationDays;
+    const totalTargetFats = goalData.targetFats * goalDurationDays;
+    const totalTargetCarbs = goalData.targetCarbs * goalDurationDays;
+
     // Calculate progress percentages (can be negative if overconsumption)
     const calculateProgress = (actual: number, target: number): number => {
       if (target === 0) return 0;
       return Math.round((actual / target) * 100 * 100) / 100; // Round to 2 decimal places
     };
 
+    // Calculate how many days have been tracked (approximate)
+    const trackedDaysCount =
+      consumption.totalTrackedDays || trackerEntries.length;
+
     const progress = {
+      goalInfo: {
+        duration: goalDurationDays,
+        startDate: dietGoal.startDate,
+        targetDate: dietGoal.targetDate,
+        trackedDays: trackedDaysCount,
+        dailyTargets: {
+          calories: goalData.targetCalories,
+          proteins: goalData.targetProteins,
+          fats: goalData.targetFats,
+          carbs: goalData.targetCarbs,
+        },
+      },
       calories: {
-        target: goalData.targetCalories,
+        target: totalTargetCalories,
         actual: Math.round(consumption.totalCalories * 100) / 100,
         progress: calculateProgress(
           consumption.totalCalories,
-          goalData.targetCalories
+          totalTargetCalories
         ),
         status:
-          consumption.totalCalories <= goalData.targetCalories
+          consumption.totalCalories <= totalTargetCalories
             ? "on_track"
             : "exceeded",
+        dailyAverage:
+          Math.round((consumption.totalCalories / trackedDaysCount) * 100) /
+          100,
       },
       proteins: {
-        target: goalData.targetProteins,
+        target: totalTargetProteins,
         actual: Math.round(consumption.totalProteins * 100) / 100,
         progress: calculateProgress(
           consumption.totalProteins,
-          goalData.targetProteins
+          totalTargetProteins
         ),
         status:
-          consumption.totalProteins <= goalData.targetProteins
+          consumption.totalProteins <= totalTargetProteins
             ? "on_track"
             : "exceeded",
+        dailyAverage:
+          Math.round((consumption.totalProteins / trackedDaysCount) * 100) /
+          100,
       },
       fats: {
-        target: goalData.targetFats,
+        target: totalTargetFats,
         actual: Math.round(consumption.totalFats * 100) / 100,
-        progress: calculateProgress(consumption.totalFats, goalData.targetFats),
+        progress: calculateProgress(consumption.totalFats, totalTargetFats),
         status:
-          consumption.totalFats <= goalData.targetFats
-            ? "on_track"
-            : "exceeded",
+          consumption.totalFats <= totalTargetFats ? "on_track" : "exceeded",
+        dailyAverage:
+          Math.round((consumption.totalFats / trackedDaysCount) * 100) / 100,
       },
       carbs: {
-        target: goalData.targetCarbs,
+        target: totalTargetCarbs,
         actual: Math.round(consumption.totalCarbs * 100) / 100,
-        progress: calculateProgress(
-          consumption.totalCarbs,
-          goalData.targetCarbs
-        ),
+        progress: calculateProgress(consumption.totalCarbs, totalTargetCarbs),
         status:
-          consumption.totalCarbs <= goalData.targetCarbs
-            ? "on_track"
-            : "exceeded",
+          consumption.totalCarbs <= totalTargetCarbs ? "on_track" : "exceeded",
+        dailyAverage:
+          Math.round((consumption.totalCarbs / trackedDaysCount) * 100) / 100,
       },
       overall: {
         averageProgress:
           Math.round(
             ((calculateProgress(
               consumption.totalCalories,
-              goalData.targetCalories
+              totalTargetCalories
             ) +
               calculateProgress(
                 consumption.totalProteins,
-                goalData.targetProteins
+                totalTargetProteins
               ) +
-              calculateProgress(consumption.totalFats, goalData.targetFats) +
-              calculateProgress(consumption.totalCarbs, goalData.targetCarbs)) /
+              calculateProgress(consumption.totalFats, totalTargetFats) +
+              calculateProgress(consumption.totalCarbs, totalTargetCarbs)) /
               4) *
               100
           ) / 100,
+        completionRate:
+          Math.round((trackedDaysCount / goalDurationDays) * 100 * 100) / 100,
       },
     };
 

@@ -5,7 +5,7 @@ import { Workout } from "../../models/WorkoutModel";
 import { Tracker } from "../../models/TrackerModel";
 import CommonUtlis from "../commonUtils";
 class WorkoutProgressServices {
-  // Calculating Workout Goal Progress
+  // Calculating WorkoutGoal Progress
   static async getWorkoutGoalProgressService(goalId: string) {
     if (!mongoose.Types.ObjectId.isValid(goalId)) {
       throw new CustomError("Invalid goal ID", 400);
@@ -19,6 +19,15 @@ class WorkoutProgressServices {
 
     if (workoutGoal.category !== "workout") {
       throw new CustomError("Category must be workout", 400);
+    }
+
+    // Calculate goal duration in days
+    const goalDurationMs =
+      workoutGoal.targetDate.getTime() - workoutGoal.startDate.getTime();
+    const goalDurationDays = Math.ceil(goalDurationMs / (1000 * 60 * 60 * 24));
+
+    if (goalDurationDays <= 0) {
+      throw new CustomError("Invalid goal duration", 400);
     }
 
     // Get all scheduled workouts for this goal
@@ -64,7 +73,7 @@ class WorkoutProgressServices {
         $lookup: {
           from: "workouts",
           let: { refId: { $toObjectId: "$referenceId" } },
-          pipeline: [{ $match: { $expr: { $eq: ["$_id", "$$refId"] } } }],
+          pipeline: [{ $match: { $expr: { $eq: ["$_id", "$refId"] } } }],
           as: "workoutInfo",
         },
       },
@@ -85,6 +94,20 @@ class WorkoutProgressServices {
             },
           },
           workoutCount: { $sum: 1 },
+          // Get unique workout days count
+          uniqueDaysTracked: {
+            $addToSet: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$createdAt",
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          totalTrackedDays: { $size: "$uniqueDaysTracked" },
         },
       },
     ]);
@@ -103,33 +126,65 @@ class WorkoutProgressServices {
     const workoutData = actualWorkoutData[0];
     const goalData = workoutGoal.data;
 
+    // Calculate total target values based on goal duration
+    // The target values in goalData are per day, so multiply by goal duration
+    const dailyTargetMinutes = goalData.targetMinutes || 0;
+    const totalTargetMinutes = dailyTargetMinutes * goalDurationDays;
+
     // Calculate progress percentages
     const calculateProgress = (actual: number, target: number): number => {
       if (target === 0) return 0;
       return Math.round((actual / target) * 100 * 100) / 100; // Round to 2 decimal places
     };
 
-    const targetMinutes = goalData.targetMinutes || 0;
     const actualMinutes = workoutData.totalCompletedMinutes || 0;
+    const trackedDaysCount = workoutData.totalTrackedDays || 0;
 
     const progress = {
+      goalInfo: {
+        exerciseName: goalData.exerciseName,
+        duration: goalDurationDays,
+        startDate: workoutGoal.startDate,
+        targetDate: workoutGoal.targetDate,
+        trackedDays: trackedDaysCount,
+        dailyTarget: {
+          minutes: dailyTargetMinutes,
+        },
+      },
       duration: {
-        target: targetMinutes,
+        target: totalTargetMinutes,
         actual: Math.round(actualMinutes * 100) / 100,
-        progress: calculateProgress(actualMinutes, targetMinutes),
-        status: actualMinutes >= targetMinutes ? "completed" : "in_progress",
+        progress: calculateProgress(actualMinutes, totalTargetMinutes),
+        status:
+          actualMinutes >= totalTargetMinutes ? "completed" : "in_progress",
+        dailyAverage:
+          trackedDaysCount > 0
+            ? Math.round((actualMinutes / trackedDaysCount) * 100) / 100
+            : 0,
       },
       workoutSessions: {
         completed: workoutData.workoutCount,
         scheduledMinutes: workoutData.totalScheduledMinutes,
         completedMinutes: actualMinutes,
+        averageSessionDuration:
+          workoutData.workoutCount > 0
+            ? Math.round((actualMinutes / workoutData.workoutCount) * 100) / 100
+            : 0,
       },
       overall: {
-        completionRate: calculateProgress(actualMinutes, targetMinutes),
+        completionRate: calculateProgress(actualMinutes, totalTargetMinutes),
+        dayCompletionRate:
+          Math.round((trackedDaysCount / goalDurationDays) * 100 * 100) / 100,
         status:
-          actualMinutes >= targetMinutes
+          actualMinutes >= totalTargetMinutes
             ? "goal_achieved"
             : "working_towards_goal",
+        onTrackForDaily:
+          trackedDaysCount > 0
+            ? actualMinutes / trackedDaysCount >= dailyTargetMinutes
+              ? "on_track"
+              : "behind_target"
+            : "no_data",
       },
     };
 
@@ -138,7 +193,6 @@ class WorkoutProgressServices {
       progress,
     };
   }
-
   // Get Workout Graph Progress Service (similar to diet)
   static async getWorkoutGraphProgressService({
     userId,
