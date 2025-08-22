@@ -116,6 +116,7 @@ const customLoginController = async (
       secure: false, // Will be false for localhost in dev.
       sameSite: "lax", // Allow cross-origin cookies
       maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
     });
 
     // Return success response with user data
@@ -141,7 +142,7 @@ const customLoginController = async (
  *   "message": "Successfully logged out"
  * }
  */
-const logoutController = async (
+const logoutController = async (  
   req: Request,
   res: Response,
   next: NextFunction
@@ -150,7 +151,8 @@ const logoutController = async (
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // Set true in production
-      sameSite: "none",
+      sameSite: "lax",
+      path: "/",
     });
 
     res.status(200).json({ message: "Successfully logged out" });
@@ -203,6 +205,7 @@ const firebaseLoginController = async (
       secure: false, // Set to true in production
       sameSite: "lax", // Allow cross-origin cookies
       maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
     });
 
     // Return the user details and a success message
