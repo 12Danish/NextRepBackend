@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-dotenv.config();
+const mode = process.env.MODE || 'development';
+const envFile = `.env.${mode}`;
+dotenv.config({ path: envFile });
 
-const mode = process.env.MODE;
 const MONGO_URI =
   mode == "test"
     ? (process.env.TEST_DB_CONN_STR as string)
@@ -12,7 +13,7 @@ const MONGO_URI =
 const connectDB = async () => {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log("[Database] MongoDB connected");
+    console.log("[Database] MongoDB connected:", MONGO_URI);
   } catch (error) {
     console.error("[Error] MongoDB connection failed:", error);
     process.exit(1);

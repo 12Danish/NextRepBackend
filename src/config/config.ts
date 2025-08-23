@@ -3,7 +3,10 @@ import connectDB from "./dbConfig";
 import setupSwagger from "./swaggerConfig";
 
 import { Express } from "express";
-dotenv.config();
+
+const mode = process.env.MODE || 'development';
+const envFile = `.env.${mode}`;
+dotenv.config({ path: envFile });
 
 interface Config {
   port: number;
