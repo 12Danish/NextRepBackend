@@ -4,9 +4,11 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
+    "build:prod": "MODE=production tsc",
     "test": "MODE=test jest --runInBand",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "dev": "MODE=development nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "prod": "MODE=production node dist/server.js",
     "lint": "eslint 'src/**/*.ts'"
   },
   "keywords": [],
