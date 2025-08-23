@@ -7,6 +7,10 @@ import {
   getWeightGoalProgressController,
   getWorkoutGraphProgressController,
   getSleepGraphStatsController,
+  getOverviewStatsController,
+  getTodayScheduleController,
+  getCurrentMealPlanController,
+  getOverviewGoalProgressController,
 } from "../controllers/progressController";
 
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
@@ -39,5 +43,22 @@ router
 router
   .route("/progress/sleepStats")
   .get(ValidationMiddleWare.validateToken(), getSleepGraphStatsController);
+
+// New overview routes
+router
+  .route("/overview/stats")
+  .get(ValidationMiddleWare.validateToken(), getOverviewStatsController);
+
+router
+  .route("/overview/schedule")
+  .get(ValidationMiddleWare.validateToken(), getTodayScheduleController);
+
+router
+  .route("/overview/mealplan")
+  .get(ValidationMiddleWare.validateToken(), getCurrentMealPlanController);
+
+router
+  .route("/overview/goalprogress")
+  .get(ValidationMiddleWare.validateToken(), getOverviewGoalProgressController);
 
 export default router;
