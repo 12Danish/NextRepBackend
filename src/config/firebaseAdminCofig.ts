@@ -1,17 +1,32 @@
 import admin from "firebase-admin";
-import path from "path";
+import dotenv from "dotenv";
 
-// Load the service account key
-const serviceAccount = require(
-  path.resolve(__dirname, "../serviceAccountKey.json")
-); // Update path as needed
+const mode = process.env.MODE || 'development';
+const envFile = `.env.${mode}`;
+dotenv.config({ path: envFile });
+
+const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
+if (!serviceAccountString) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT environment variable is not set");
+}
+
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(serviceAccountString);
+} catch (error) {
+  console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT JSON:", error);
+  throw new Error("Invalid FIREBASE_SERVICE_ACCOUNT JSON format");
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount), 
+    credential: admin.credential.cert({
+      ...serviceAccount,
+      privateKey: serviceAccount.private_key.replace(/\\n/g, "\n"), // fix newlines
+    }),
   });
 }
 
-const firebaseAdminAuth = admin.auth(); // Export auth module for use in the backend
+const firebaseAdminAuth = admin.auth();
 
 export default firebaseAdminAuth;
