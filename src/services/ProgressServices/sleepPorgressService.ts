@@ -1,7 +1,79 @@
 import mongoose from "mongoose";
 import SleepModel from "../../models/SleepModel";
+import { Goal } from "../../models/GoalsModel";
 import CommonUtlis from "../commonUtils";
+
 class SleepProgressServices {
+  // Calculate progress for a specific sleep goal
+  static async getSleepGoalProgressService(goalId: string) {
+    if (!mongoose.Types.ObjectId.isValid(goalId)) {
+      throw new Error("Invalid goal ID format");
+    }
+
+    // Fetch the sleep goal
+    const goal = await Goal.findById(goalId);
+    if (!goal) {
+      throw new Error("Goal not found");
+    }
+
+    if (goal.category !== "sleep") {
+      throw new Error("Goal is not a sleep goal");
+    }
+
+    const goalData = goal.data as any;
+    const targetHours = goalData.targetHours || 8;
+
+    // Get today's date
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get sleep records for this goal from the start date onwards
+    const sleepRecords = await SleepModel.find({
+      goalId: new mongoose.Types.ObjectId(goalId),
+      date: { $gte: goal.startDate }
+    });
+
+    if (sleepRecords.length === 0) {
+      return {
+        goalId,
+        progress: 0,
+        message: "No sleep records found for this goal yet",
+        currentHours: 0,
+        targetHours: targetHours,
+        unit: "hours"
+      };
+    }
+
+    // Calculate total sleep hours achieved
+    const totalSleepHours = sleepRecords.reduce((sum, record) => sum + record.duration, 0);
+    
+    // Calculate progress based on daily target
+    // For sleep goals, progress is based on how many days you've met your target
+    const daysSinceStart = Math.ceil((today.getTime() - goal.startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysWithSleepData = sleepRecords.length;
+    
+    // Progress is based on how many days you've tracked sleep vs total days
+    // But also consider if you're meeting your target hours
+    let progress = 0;
+    
+    if (daysSinceStart > 0) {
+      // Calculate progress based on days tracked and target hours met
+      const daysMeetingTarget = sleepRecords.filter(record => record.duration >= targetHours).length;
+      const trackingProgress = (daysWithSleepData / daysSinceStart) * 50; // 50% for tracking consistency
+      const targetProgress = (daysMeetingTarget / daysSinceStart) * 50; // 50% for meeting target
+      progress = Math.min(trackingProgress + targetProgress, 100);
+    }
+
+    return {
+      goalId,
+      progress: Math.round(progress * 100) / 100,
+      message: "Sleep goal progress calculated successfully",
+      currentHours: Math.round(totalSleepHours * 100) / 100,
+      targetHours: targetHours,
+      unit: "hours"
+    };
+  }
+
   static async getSleepGraphDataService({
     userId,
     viewType,

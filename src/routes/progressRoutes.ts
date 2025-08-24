@@ -11,6 +11,7 @@ import {
   getTodayScheduleController,
   getCurrentMealPlanController,
   getOverviewGoalProgressController,
+  getSleepGoalProgressController,
 } from "../controllers/progressController";
 
 import { ValidationMiddleWare } from "../middleware/authInputHandler";
@@ -43,6 +44,10 @@ router
 router
   .route("/progress/sleepStats")
   .get(ValidationMiddleWare.validateToken(), getSleepGraphStatsController);
+
+router
+  .route("/progress/SleepGoalProgress/:goalId")
+  .get(ValidationMiddleWare.validateToken(), getSleepGoalProgressController);
 
 // New overview routes
 router
