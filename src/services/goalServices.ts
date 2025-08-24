@@ -237,8 +237,6 @@ class GoalServices {
       userId: new mongoose.Types.ObjectId(userId),
     });
 
-    console.log("Progress Service");
-
     let completed = 0;
     let pending = 0;
     let overdue = 0;
@@ -252,30 +250,10 @@ class GoalServices {
         goalProgress = 100;
       } else if (goal.status === "pending") {
         pending++;
-        // Calculate progress based on category
-        if (goal.category === "weight") {
-          const data = goal.data as IWeightGoalData;
-          const weightChange = Math.abs(data.currentWeight - data.targetWeight);
-          const initialChange = Math.abs(
-            data.previousWeights[0]?.weight ||
-              data.currentWeight - data.targetWeight
-          );
-          goalProgress = initialChange
-            ? (weightChange / initialChange) * 100
-            : 0;
-        } else if (goal.category === "diet") {
-          // Assume progress based on external tracking (e.g., logged calories); placeholder
-          goalProgress = 50; // Simplified for example
-        } else if (goal.category === "sleep") {
-          // Assume progress based on external tracking; placeholder
-          goalProgress = 50;
-        } else if (goal.category === "workout") {
-          // Assume progress based on external tracking; placeholder
-          goalProgress = 50;
-        }
+        goalProgress = 0; // Pending goals have 0% progress
       } else if (goal.status === "overdue") {
         overdue++;
-        goalProgress = 0;
+        goalProgress = 0; // Overdue goals have 0% progress
       }
 
       totalProgress += goalProgress;

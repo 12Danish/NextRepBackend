@@ -171,6 +171,22 @@ const getSleepGraphStatsController = async (
   }
 };
 
+const getSleepGoalProgressController = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const goalId = req.params.goalId;
+
+    const result = await SleepProgressServices.getSleepGoalProgressService(goalId);
+
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getOverviewStatsController = async (
   req: any,
   res: Response,
@@ -459,6 +475,7 @@ export {
   getWeightGoalProgressController,
   getWorkoutGraphProgressController,
   getSleepGraphStatsController,
+  getSleepGoalProgressController,
   getOverviewStatsController,
   getTodayScheduleController,
   getCurrentMealPlanController,
