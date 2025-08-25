@@ -17,7 +17,7 @@ import cors from "cors";
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'], // Allow both frontend and backend origins
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://nextrep.site'], // Allow both frontend and backend origins
   credentials: true, // Allow cookies and credentials
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all methods
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // Allow necessary headers
