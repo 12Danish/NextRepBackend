@@ -215,6 +215,20 @@ const getOverviewStatsController = async (
       workoutStats = { data: [] };
     }
 
+    // Also fetch from WorkoutServices for consistency with workout plans
+    let workoutData;
+    try {
+      workoutData = await WorkoutServices.getWorkoutScheduleService({
+        userId,
+        viewType: "day",
+        offset: 0,
+        particularDate: targetDate,
+      });
+    } catch (error) {
+      console.error('Error fetching workout data:', error);
+      workoutData = { workouts: [] };
+    }
+
     // Get diet stats for the target date
     let dietStats;
     try {
@@ -264,8 +278,12 @@ const getOverviewStatsController = async (
     const caloriesFromDietService = dietData.diets.reduce((sum: number, diet: any) => sum + (diet.calories || 0), 0);
     const finalCalories = targetCalories > 0 ? targetCalories : caloriesFromDietService;
 
+    // Use WorkoutServices data for workout duration if progress service returns 0
+    const workoutDurationFromService = workoutData.workouts.reduce((sum: number, workout: any) => sum + (workout.duration || 0), 0);
+    const finalWorkoutMinutes = targetWorkoutMinutes > 0 ? targetWorkoutMinutes : workoutDurationFromService;
+ 
     // Ensure we have valid numbers and handle NaN/undefined values
-    const workoutMinutes = (typeof targetWorkoutMinutes === 'number' && !isNaN(targetWorkoutMinutes)) ? targetWorkoutMinutes : 0;
+    const workoutMinutes = (typeof finalWorkoutMinutes === 'number' && !isNaN(finalWorkoutMinutes)) ? finalWorkoutMinutes : 0;
     const calories = (typeof finalCalories === 'number' && !isNaN(finalCalories)) ? finalCalories : 0;
     const sleepHours = (typeof targetSleepHours === 'number' && !isNaN(targetSleepHours)) ? targetSleepHours : 0;
 
