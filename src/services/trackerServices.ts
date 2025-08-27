@@ -9,6 +9,7 @@ interface AddTrackerServiceDietOrWorkoutDataProps {
   weightConsumed?: number;
   completedReps?: number;
   completedTime?: number;
+  sleepHours?: number; // Add sleep hours for sleep tracking
 }
 
 class TrackerServices {
@@ -140,14 +141,42 @@ class TrackerServices {
 
     switch (type) {
       case "sleep": {
-        const sleepEntry = await SleepModel.findById(refId);
-        if (!sleepEntry) throw new CustomError("No sleep entry found", 404);
+        // For sleep tracking, we need to create a sleep entry first if it doesn't exist
+        let sleepEntry = await SleepModel.findById(refId);
+        
+        if (!sleepEntry) {
+          // Create a new sleep entry with the tracked hours
+          const sleepHours = workoutOrDietData.sleepHours || 0;
+          if (sleepHours <= 0) {
+            throw new CustomError("Sleep hours must be greater than 0", 400);
+          }
+          
+          // Find the user's pending sleep goal to associate with
+          const sleepGoal = await mongoose.model("Goal").findOne({
+            userId: new mongoose.Types.ObjectId(userId),
+            category: "sleep",
+            status: "pending"
+          });
+          
+          if (!sleepGoal) {
+            throw new CustomError("No pending sleep goal found", 404);
+          }
+          
+          // Create the sleep entry
+          sleepEntry = await SleepModel.create({
+            userId: new mongoose.Types.ObjectId(userId),
+            duration: sleepHours,
+            date: date,
+            goalId: sleepGoal._id
+          });
+        }
 
         newTracker = await Tracker.create({
           userId: new mongoose.Types.ObjectId(userId),
           date,
           type: "sleep",
-          referenceId: new mongoose.Types.ObjectId(refId),
+          referenceId: sleepEntry._id,
+          sleepHours: workoutOrDietData.sleepHours || null,
         });
         break;
       }
