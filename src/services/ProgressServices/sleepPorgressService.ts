@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import SleepModel from "../../models/SleepModel";
 import { Goal } from "../../models/GoalsModel";
+import { Tracker } from "../../models/TrackerModel";
 import CommonUtlis from "../commonUtils";
 
 class SleepProgressServices {
@@ -33,7 +34,53 @@ class SleepProgressServices {
       date: { $gte: goal.startDate }
     });
 
-    if (sleepRecords.length === 0) {
+    // Also get tracker entries that reference sleep records for this goal
+    // Don't filter by date since tracker entries might be for dates before goal creation
+    const trackerEntries = await Tracker.aggregate([
+      {
+        $match: {
+          type: "sleep"
+        }
+      },
+      {
+        $lookup: {
+          from: "sleeps", // Collection name for Sleep model
+          localField: "referenceId",
+          foreignField: "_id",
+          as: "sleepData"
+        }
+      },
+      {
+        $unwind: "$sleepData"
+      },
+      {
+        $match: {
+          "sleepData.goalId": new mongoose.Types.ObjectId(goalId)
+        }
+      },
+      {
+        $project: {
+          date: "$date",
+          duration: "$sleepHours"
+        }
+      }
+    ]);
+
+    // Combine both sources of sleep data
+    const allSleepData = [
+      ...sleepRecords.map(record => ({
+        date: record.date,
+        duration: record.duration
+      })),
+      ...trackerEntries.map(entry => ({
+        date: entry.date,
+        duration: entry.duration || 0
+      }))
+    ];
+
+
+
+    if (allSleepData.length === 0) {
       return {
         goalId,
         progress: 0,
@@ -45,12 +92,12 @@ class SleepProgressServices {
     }
 
     // Calculate total sleep hours achieved
-    const totalSleepHours = sleepRecords.reduce((sum, record) => sum + record.duration, 0);
+    const totalSleepHours = allSleepData.reduce((sum, record) => sum + (record.duration || 0), 0);
     
     // Calculate progress based on daily target
     // For sleep goals, progress is based on how many days you've met your target
     const daysSinceStart = Math.ceil((today.getTime() - goal.startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const daysWithSleepData = sleepRecords.length;
+    const daysWithSleepData = allSleepData.length;
     
     // Progress is based on how many days you've tracked sleep vs total days
     // But also consider if you're meeting your target hours
@@ -58,7 +105,7 @@ class SleepProgressServices {
     
     if (daysSinceStart > 0) {
       // Calculate progress based on days tracked and target hours met
-      const daysMeetingTarget = sleepRecords.filter(record => record.duration >= targetHours).length;
+      const daysMeetingTarget = allSleepData.filter(record => (record.duration || 0) >= targetHours).length;
       const trackingProgress = (daysWithSleepData / daysSinceStart) * 50; // 50% for tracking consistency
       const targetProgress = (daysMeetingTarget / daysSinceStart) * 50; // 50% for meeting target
       progress = Math.min(trackingProgress + targetProgress, 100);
