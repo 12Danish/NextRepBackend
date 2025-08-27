@@ -77,9 +77,11 @@ class SleepProgressServices {
   static async getSleepGraphDataService({
     userId,
     viewType,
+    particularDate,
   }: {
     userId: string;
     viewType: "day" | "week" | "month";
+    particularDate?: Date;
   }) {
     // Calculate offset based on viewType to get previous period till today
     let offset = 0;
@@ -90,7 +92,8 @@ class SleepProgressServices {
     const { start, end } =
       CommonUtlis.calculate_last_period_including_date_for_progress(
         viewType,
-        offset
+        offset,
+        particularDate
       );
 
     // Get sleep data for the date range
