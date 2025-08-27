@@ -196,57 +196,78 @@ const getOverviewStatsController = async (
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    // Get today's date
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Get date from query parameter or default to today
+    const targetDate = req.query.date ? new Date(req.query.date) : new Date();
+    targetDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(targetDate);
+    nextDay.setDate(nextDay.getDate() + 1);
 
-    // Get workout stats for today
+    // Get workout stats for the target date
     let workoutStats;
     try {
       workoutStats = await WorkoutProgressServices.getWorkoutGraphProgressService({
         userId,
         viewType: "day",
+        particularDate: targetDate,
       });
     } catch (error) {
       console.error('Error fetching workout stats:', error);
       workoutStats = { data: [] };
     }
 
-    // Get diet stats for today
+    // Get diet stats for the target date
     let dietStats;
     try {
       dietStats = await DietProgressServices.getDietGraphProgressService({
         userId,
         viewType: "day",
+        particularDate: targetDate,
       });
     } catch (error) {
       console.error('Error fetching diet stats:', error);
       dietStats = { data: [] };
     }
 
-    // Get sleep stats for today
+    // Also fetch from DietServices for consistency with meal plan
+    let dietData;
+    try {
+      dietData = await DietServices.getDietsService({
+        userId,
+        viewType: "day",
+        offset: 0,
+        particularDate: targetDate,
+      });
+    } catch (error) {
+      console.error('Error fetching diet data:', error);
+      dietData = { diets: [] };
+    }
+
+    // Get sleep stats for the target date
     let sleepStats;
     try {
       sleepStats = await SleepProgressServices.getSleepGraphDataService({
         userId,
         viewType: "day",
+        particularDate: targetDate,
       });
     } catch (error) {
       console.error('Error fetching sleep stats:', error);
       sleepStats = { data: [] };
     }
 
-    // Calculate today's totals with proper fallbacks
-    const todayWorkoutMinutes = workoutStats?.data?.[0]?.actual?.totalDuration || 0;
-    const todayCalories = dietStats?.data?.[0]?.actual?.calories || 0;
-    const todaySleepHours = sleepStats?.data?.[0]?.duration || 0;
+    // Calculate totals for the target date with proper fallbacks
+    const targetWorkoutMinutes = workoutStats?.data?.[0]?.actual?.totalDuration || 0;
+    const targetCalories = dietStats?.data?.[0]?.actual?.calories || 0;
+    const targetSleepHours = sleepStats?.data?.[0]?.duration || 0;
+
+    // Use DietServices data for calories if progress service returns 0
+    const caloriesFromDietService = dietData.diets.reduce((sum: number, diet: any) => sum + (diet.calories || 0), 0);
+    const finalCalories = targetCalories > 0 ? targetCalories : caloriesFromDietService;
 
     // Ensure we have valid numbers and handle NaN/undefined values
-    const workoutMinutes = (typeof todayWorkoutMinutes === 'number' && !isNaN(todayWorkoutMinutes)) ? todayWorkoutMinutes : 0;
-    const calories = (typeof todayCalories === 'number' && !isNaN(todayCalories)) ? todayCalories : 0;
-    const sleepHours = (typeof todaySleepHours === 'number' && !isNaN(todaySleepHours)) ? todaySleepHours : 0;
+    const workoutMinutes = (typeof targetWorkoutMinutes === 'number' && !isNaN(targetWorkoutMinutes)) ? targetWorkoutMinutes : 0;
+    const calories = (typeof finalCalories === 'number' && !isNaN(finalCalories)) ? finalCalories : 0;
+    const sleepHours = (typeof targetSleepHours === 'number' && !isNaN(targetSleepHours)) ? targetSleepHours : 0;
 
     const response = {
       success: true,
@@ -352,18 +373,18 @@ const getCurrentMealPlanController = async (
     const decoded = req.user as jwt.JwtPayload;
     const userId = decoded.id;
 
-    // Get today's date
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Get date from query parameter or default to today
+    const targetDate = req.query.date ? new Date(req.query.date) : new Date();
+    targetDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(targetDate);
+    nextDay.setDate(nextDay.getDate() + 1);
 
-    // Get today's diets
+    // Get diets for the target date
     const diets = await DietServices.getDietsService({
       userId,
       viewType: "day",
       offset: 0,
-      particularDate: today,
+      particularDate: targetDate,
     });
 
     // Group by meal type
