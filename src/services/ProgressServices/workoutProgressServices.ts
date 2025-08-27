@@ -197,9 +197,11 @@ class WorkoutProgressServices {
   static async getWorkoutGraphProgressService({
     userId,
     viewType,
+    particularDate,
   }: {
     userId: string;
     viewType: "day" | "week" | "month";
+    particularDate?: Date;
   }) {
     // Calculate offset based on viewType to get previous period till today
     let offset = 0;
@@ -209,7 +211,8 @@ class WorkoutProgressServices {
     const { start, end } =
       CommonUtlis.calculate_last_period_including_date_for_progress(
         viewType,
-        offset
+        offset,
+        particularDate
       );
 
     // Adding tests to see why progress is failing

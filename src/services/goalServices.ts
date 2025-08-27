@@ -74,6 +74,7 @@ class GoalServices {
     targetDate,
     status,
     userId,
+    description,
     data,
   }: addGoalServiceProps) {
     const newGoal = await Goal.create({
@@ -83,6 +84,7 @@ class GoalServices {
       targetDate,
       status,
       userId: new mongoose.Types.ObjectId(userId),
+      description,
       data,
     });
 
