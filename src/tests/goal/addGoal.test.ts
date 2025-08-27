@@ -162,8 +162,10 @@ describe("Add Goal Tests Suite", () => {
         description: "Run 30 minutes daily",
         status: "pending",
         data: {
+          type: "cardio",
           exerciseName: "Running",
           targetMinutes: 30,
+          targetMuscleGroup: ["legs"]
         },
       };
 
@@ -179,10 +181,12 @@ describe("Add Goal Tests Suite", () => {
       it("should add workout goal with target reps", async () => {
         const repsGoalData = {
           ...workoutGoalData,
-          data: {
-            exerciseName: "Push-ups",
-            targetReps: 50,
-          },
+                  data: {
+          type: "weight lifting",
+          exerciseName: "Push-ups",
+          targetReps: 50,
+          targetMuscleGroup: ["chest", "arms"]
+        },
         };
         const res = await agent.post("/api/goal/add").send(repsGoalData);
         expect(res.status).toBe(200);
@@ -192,7 +196,11 @@ describe("Add Goal Tests Suite", () => {
       it("should fail to add workout goal with missing exercise name", async () => {
         const invalidGoalData = {
           ...workoutGoalData,
-          data: { targetMinutes: 30 },
+          data: { 
+          type: "cardio",
+          targetMinutes: 30,
+          targetMuscleGroup: ["legs"]
+        },
         };
         const res = await agent.post("/api/goal/add").send(invalidGoalData);
         expect(res.status).toBe(400);

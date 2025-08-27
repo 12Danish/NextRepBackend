@@ -23,9 +23,14 @@ interface ISleepGoalData {
 }
 
 interface IWorkoutGoalData {
+  type: "weight lifting" | "cardio" | "crossfit" | "yoga";
+  exerciseName: string;
   targetMinutes?: number;
   targetReps?: number;
-  exerciseName: string;
+  targetSets?: number;
+  targetMuscleGroup: Array<
+    "chest" | "back" | "legs" | "arms" | "shoulders" | "core"
+  >;
 }
 
 // Interface for adding a goal
