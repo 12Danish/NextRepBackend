@@ -1,4 +1,6 @@
 import express from "express";
+import { createServer } from "http"; // Only import createServer
+import { Server } from "socket.io"; // Import Server from socket.io, not http
 import config from "./config/config";
 import { errorHandler } from "./middleware/errorHandler";
 import authRoutes from "./routes/authRoutes";
@@ -13,18 +15,47 @@ import locationRoutes from "./routes/locationRoutes";
 import progressRoutes from "./routes/progressRoutes";
 import foodSearchRoutes from "./routes/foodSearchRoutes";
 import cors from "cors";
+import socketHandler from "./chatbot/socketHandler"; // Fix the typo
 
 const app = express();
+const server = createServer(app);
 
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://nextrep.site'], // Allow both frontend and backend origins
-  credentials: true, // Allow cookies and credentials
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow all methods
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // Allow necessary headers
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173",
+      "https://nextrep.site",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  })
+);
+
+// Socket.IO setup with CORS configuration
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173",
+      "https://nextrep.site",
+    ],
+    credentials: true,
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(express.json());
 app.use(cookieParser());
+
+// Make io accessible in routes
+app.set("io", io);
+
+// Setup socket handlers
+socketHandler(io);
 
 config.setupSwagger(app);
 app.use("/api", authRoutes);
@@ -40,9 +71,9 @@ app.use("/api", foodSearchRoutes);
 app.use(errorHandler);
 
 app.get("/", (req, res) => {
-  const mode = process.env.MODE || 'development';
-  const envBadge = mode === 'production' ? 'production' : 'development';
-  
+  const mode = process.env.MODE || "development";
+  const envBadge = mode === "production" ? "production" : "development";
+
   res.send(`<!DOCTYPE html>
         <html>
         <head>
@@ -59,11 +90,12 @@ app.get("/", (req, res) => {
         </html>`);
 });
 
-
 config.connectDB().then(() => {
-  app.listen(config.port, () => {
+  server.listen(config.port, () => {
+    // Use server.listen instead of app.listen
     console.log(`[Server] Server running on http://localhost:${config.port}`);
+    console.log(`[Socket] Socket.IO server initialized`);
   });
 });
 
-export { app };
+export { app, server, io };

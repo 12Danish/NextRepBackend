@@ -39,6 +39,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.75",
+    "@langchain/google-genai": "^0.2.17",
     "@types/cors": "^2.8.19",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
@@ -46,9 +48,12 @@
     "express-validator": "^7.2.1",
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
+    "langchain": "^0.3.33",
     "mongoose": "^8.16.3",
+    "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "zod": "^4.0.14"
+    "zod": "^4.0.14",
+    "zustand": "^5.0.8"
   }
 }
