@@ -20,7 +20,14 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/NextRepBackend
+
+            # load nvm so node/npm are available
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
             git pull origin main
+
             npm install --production
             npm run build
-            sudo systemctl restart nextrep.service
+
+            sudo systemctl restart nextrep
