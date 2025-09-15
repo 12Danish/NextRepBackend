@@ -27,7 +27,7 @@ jobs:
 
             git pull origin main
 
-            npm install --production
+            npm install 
             npm run build
 
             sudo systemctl restart nextrep
