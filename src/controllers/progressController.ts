@@ -215,6 +215,20 @@ const getOverviewStatsController = async (
       workoutStats = { data: [] };
     }
 
+    // Also fetch from WorkoutServices for consistency with workout plans
+    let workoutData;
+    try {
+      workoutData = await WorkoutServices.getWorkoutScheduleService({
+        userId,
+        viewType: "day",
+        offset: 0,
+        particularDate: targetDate,
+      });
+    } catch (error) {
+      console.error('Error fetching workout data:', error);
+      workoutData = { workouts: [] };
+    }
+
     // Get diet stats for the target date
     let dietStats;
     try {
@@ -264,8 +278,12 @@ const getOverviewStatsController = async (
     const caloriesFromDietService = dietData.diets.reduce((sum: number, diet: any) => sum + (diet.calories || 0), 0);
     const finalCalories = targetCalories > 0 ? targetCalories : caloriesFromDietService;
 
+    // Use WorkoutServices data for workout duration if progress service returns 0
+    const workoutDurationFromService = workoutData.workouts.reduce((sum: number, workout: any) => sum + (workout.duration || 0), 0);
+    const finalWorkoutMinutes = targetWorkoutMinutes > 0 ? targetWorkoutMinutes : workoutDurationFromService;
+ 
     // Ensure we have valid numbers and handle NaN/undefined values
-    const workoutMinutes = (typeof targetWorkoutMinutes === 'number' && !isNaN(targetWorkoutMinutes)) ? targetWorkoutMinutes : 0;
+    const workoutMinutes = (typeof finalWorkoutMinutes === 'number' && !isNaN(finalWorkoutMinutes)) ? finalWorkoutMinutes : 0;
     const calories = (typeof finalCalories === 'number' && !isNaN(finalCalories)) ? finalCalories : 0;
     const sleepHours = (typeof targetSleepHours === 'number' && !isNaN(targetSleepHours)) ? targetSleepHours : 0;
 
@@ -452,7 +470,6 @@ const getOverviewGoalProgressController = async (
       limit: 5,
     });
 
-    // Get progress data for the last 7 days
     const workoutProgress = await WorkoutProgressServices.getWorkoutGraphProgressService({
       userId,
       viewType: "week",
@@ -463,10 +480,44 @@ const getOverviewGoalProgressController = async (
       viewType: "week",
     });
 
-    const sleepProgress = await SleepProgressServices.getSleepGraphDataService({
-      userId,
-      viewType: "week",
-    });
+    let sleepProgressData: Array<{
+      date: string;
+      progress: number;
+      currentHours: number;
+      targetHours: number;
+      duration: number;
+    }> = [];
+    
+    if (sleepGoals.goals && sleepGoals.goals.length > 0) {
+      const firstSleepGoal = sleepGoals.goals[0];
+      try {
+        const sleepGoalProgress = await SleepProgressServices.getSleepGoalProgressService(firstSleepGoal._id as string);
+        
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateStr = date.toISOString().split('T')[0];
+          
+          last7Days.push({
+            date: dateStr,
+            progress: sleepGoalProgress.progress,
+            currentHours: sleepGoalProgress.currentHours,
+            targetHours: sleepGoalProgress.targetHours,
+            duration: sleepGoalProgress.currentHours,
+            // Add these fields to match the expected graph data format
+            totalCompletedMinutes: 0, // Not applicable for sleep
+            totalCalories: 0, // Not applicable for sleep
+            sleepCount: 1,
+            averageDuration: sleepGoalProgress.currentHours
+          });
+        }
+        sleepProgressData = last7Days;
+      } catch (error) {
+        console.error('Error fetching sleep goal progress:', error);
+        sleepProgressData = [];
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -479,7 +530,7 @@ const getOverviewGoalProgressController = async (
         progress: {
           workout: workoutProgress.data || [],
           diet: dietProgress.data || [],
-          sleep: sleepProgress.data || [],
+          sleep: sleepProgressData, // Use the goal-based progress data
         },
       },
     });

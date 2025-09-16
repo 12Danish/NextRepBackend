@@ -82,7 +82,7 @@ app.get("/", (req, res) => {
         </head>
             <body style="font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;">
             <h1>NextRep</h1>
-            <p>Version: 1.0.0 (Initial Release)</p>
+            <p>Version: 2.0.0 (Deployed to Production)</p>
             <p>© Danish Abbas & Momena Akhtar - 2025</p>
             <p><strong>Environment:</strong> ${envBadge}</p>
             <a href="/api/docs/">View API Documentation</a>

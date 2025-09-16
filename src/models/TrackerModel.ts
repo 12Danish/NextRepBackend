@@ -18,8 +18,12 @@ interface IDietTracker extends ITrackerBase {
   weightConsumed: number;
 }
 
+interface ISleepTracker extends ITrackerBase {
+  sleepHours?: number; // Add sleep hours for sleep tracking
+}
+
 // Union type for the full Tracker
-export type ITracker = IWorkoutTracker | IDietTracker | ITrackerBase;
+export type ITracker = IWorkoutTracker | IDietTracker | ISleepTracker;
 
 const TrackerSchema = new Schema<ITracker>(
   {
@@ -33,6 +37,9 @@ const TrackerSchema = new Schema<ITracker>(
 
     // Diet-specific
     weightConsumed: { type: Number, required: false },
+
+    // Sleep-specific
+    sleepHours: { type: Number, required: false },
   },
   { timestamps: true }
 );
